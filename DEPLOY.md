@@ -100,11 +100,15 @@ docker ps
 
 ```bash
 sudo mkdir -p /opt/junpiks
-sudo chown "$USER":"$USER" /opt/junpiks
+sudo chown -R "$USER":"$USER" /opt/junpiks     # 이 줄을 빠뜨리면 배포가 실패한다
 cd /opt/junpiks
 
-vi .env        # 아래 표를 보고 직접 작성
+vi .env        # sudo 없이 작성할 것. 아래 표 참고
 ```
+
+> **소유권을 넘기지 않으면** 배포가 `Permission denied` 로 멈춘다.
+> `ls -ld /opt/junpiks` 로 소유자가 배포 계정인지 확인한다.
+> `sudo vi .env` 로 만들면 `.env` 만 root 소유로 남으니 주의한다.
 
 `.env` 예시 (`ADMIN_SESSION_SECRET` 은 `openssl rand -hex 32` 결과를 붙여넣는다):
 
@@ -376,16 +380,38 @@ docker compose restart next-app
 
 ### 초기 데이터 적재 규칙
 
-`prisma/seed.ts` 는 `data/junpiks_data.json` 을 읽어 DB 에 넣는다.
-**각 테이블이 비어 있을 때만** 적재하므로 배포 때마다 실행돼도
-운영 데이터를 덮어쓰지 않는다. 관리자 계정 비밀번호만 예외로,
-매번 `.env` 의 `ADMIN_PASSWORD` 값으로 재설정된다.
+`migrate` 컨테이너는 배포할 때마다 `prisma migrate deploy && prisma db seed` 를 실행한다.
+다만 **하는 일은 배포 차수에 따라 다르다.**
+
+| 대상 | 언제 |
+| --- | --- |
+| 스키마 마이그레이션 | 적용되지 않은 것만 (`migrate deploy`) |
+| 초기 데이터 (`data/junpiks_data.json`) | **최초 1회만** |
+| 관리자 비밀번호 | **매 배포마다** `.env` 의 `ADMIN_PASSWORD` 로 동기화 |
+
+초기 데이터 적재 여부는 `seed_state` 테이블의 마커로 판단한다.
+"테이블이 비어 있으면 채운다" 방식이 아니므로,
+**관리자가 UI 에서 후기나 시공사례를 전부 삭제해도 다음 배포 때 되살아나지 않는다.**
+
+관리자 비밀번호를 바꾸려면 `.env` 의 `ADMIN_PASSWORD` 를 고치고 재배포한다.
+(비밀번호 변경 UI 가 없어서 `.env` 가 유일한 변경 수단이다)
+
+### 초기 데이터를 다시 넣어야 할 때
+
+마커를 지우면 비어 있는 테이블만 다시 채워진다.
+
+```bash
+cd /opt/junpiks
+docker compose exec -T mariadb sh -c \
+  'exec mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" "$MARIADB_DATABASE" \
+   -e "DELETE FROM seed_state;"'
+docker compose run --rm migrate
+```
 
 다른 파일에서 적재하려면:
 
 ```bash
-docker compose run --rm -e SEED_SOURCE=/app/data/다른파일.json migrate \
-  sh -c 'npx prisma db seed'
+docker compose run --rm -e SEED_SOURCE=/app/data/다른파일.json migrate
 ```
 
 ### 마이그레이션이 실패해 롤백된 경우

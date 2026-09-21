@@ -20,8 +20,41 @@ PRESERVE=(.env backups .rollback)
 
 log() { echo ""; echo "── $* ────────────────────────────────────────"; }
 
-mkdir -p "$DEPLOY_PATH"
+# ---------------------------------------------------------------------------
+# 사전 점검 - 실패하면 무엇을 고쳐야 하는지 명확히 알려준다
+# ---------------------------------------------------------------------------
+WHOAMI="$(id -un)"
+
+if [ ! -d "$DEPLOY_PATH" ]; then
+  if ! mkdir -p "$DEPLOY_PATH" 2>/dev/null; then
+    echo "오류: 배포 디렉터리를 만들 수 없습니다: $DEPLOY_PATH (계정: $WHOAMI)" >&2
+    echo "" >&2
+    echo "  서버에서 아래를 실행하세요:" >&2
+    echo "    sudo mkdir -p $DEPLOY_PATH" >&2
+    echo "    sudo chown -R $WHOAMI:$WHOAMI $DEPLOY_PATH" >&2
+    exit 1
+  fi
+fi
+
 cd "$DEPLOY_PATH"
+
+# 소유권이 root 로 남아 있는 경우가 가장 흔한 실패 원인이다.
+if ! touch .deploy-write-test 2>/dev/null; then
+  echo "오류: $DEPLOY_PATH 에 쓸 수 없습니다. (계정: $WHOAMI, 소유자: $(stat -c '%U' . 2>/dev/null || stat -f '%Su' . 2>/dev/null || echo '?'))" >&2
+  echo "" >&2
+  echo "  서버에서 아래를 실행하세요:" >&2
+  echo "    sudo chown -R $WHOAMI:$WHOAMI $DEPLOY_PATH" >&2
+  exit 1
+fi
+rm -f .deploy-write-test
+
+if ! docker compose version >/dev/null 2>&1; then
+  echo "오류: docker compose 를 실행할 수 없습니다. (계정: $WHOAMI)" >&2
+  echo "" >&2
+  echo "  docker 미설치라면 설치하고, 권한 문제라면 아래 후 재로그인하세요:" >&2
+  echo "    sudo usermod -aG docker $WHOAMI" >&2
+  exit 1
+fi
 
 if [ ! -f .env ]; then
   echo "오류: $DEPLOY_PATH/.env 가 없습니다." >&2

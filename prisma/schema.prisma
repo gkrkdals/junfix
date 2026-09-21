@@ -137,3 +137,12 @@ model Inquiry {
   @@index([status, createdAt])
   @@map("inquiries")
 }
+
+/// 시드 적용 이력. 초기 데이터 적재를 딱 한 번만 수행하기 위한 마커.
+/// 이게 없으면 관리자가 지운 데이터가 다음 배포 때 되살아난다.
+model SeedState {
+  key       String   @id @db.VarChar(50)
+  appliedAt DateTime @default(now()) @map("applied_at")
+
+  @@map("seed_state")
+}
