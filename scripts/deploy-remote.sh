@@ -20,6 +20,31 @@ PRESERVE=(.env backups .rollback)
 
 log() { echo ""; echo "── $* ────────────────────────────────────────"; }
 
+# compose up 이 실패하면 원인은 컨테이너 안에 있다.
+# 그대로 두면 Actions 로그에 "exit 1" 만 남아 서버에 직접 들어가야 하므로,
+# 실패한 서비스의 출력을 여기서 끌어낸다.
+dump_failure_logs() {
+  echo "" >&2
+  echo "──────────── 실패 원인 (컨테이너 로그) ────────────" >&2
+
+  # 종료된 컨테이너의 종료 코드부터 보여준다
+  docker compose ps -a --format '  {{.Service}}\t{{.Status}}' 2>/dev/null >&2 || true
+
+  # mariadb 는 부팅 로그가 길어 원인을 밀어내므로 짧게.
+  # 가장 흔한 원인인 migrate 를 맨 뒤(가장 잘 보이는 위치)에 둔다.
+  for entry in "mariadb 12" "nginx 20" "next-app 30" "migrate 60"; do
+    svc="${entry%% *}"
+    lines="${entry##* }"
+    out="$(docker compose logs --no-color --tail="$lines" "$svc" 2>/dev/null)" || continue
+    [ -z "$out" ] && continue
+    echo "" >&2
+    echo "[$svc] ─────────────────────────────────────────" >&2
+    echo "$out" >&2
+  done
+  echo "" >&2
+  echo "──────────────────────────────────────────────────" >&2
+}
+
 # ---------------------------------------------------------------------------
 # 사전 점검 - 실패하면 무엇을 고쳐야 하는지 명확히 알려준다
 # ---------------------------------------------------------------------------
@@ -53,6 +78,27 @@ if ! docker compose version >/dev/null 2>&1; then
   echo "" >&2
   echo "  docker 미설치라면 설치하고, 권한 문제라면 아래 후 재로그인하세요:" >&2
   echo "    sudo usermod -aG docker $WHOAMI" >&2
+  exit 1
+fi
+
+# 다른 스택이 80/443/3306 을 잡고 있으면 빌드를 다 끝낸 뒤에야 실패한다.
+# 4분짜리 빌드를 낭비하지 않도록 먼저 확인한다.
+# (우리 컨테이너는 모두 junpiks-* 이므로 재배포 시 자기 자신은 걸러진다)
+PORT_CONFLICTS="$(docker ps --format '{{.Names}}|{{.Ports}}' 2>/dev/null \
+  | grep -E ':(80|443|3306)->' \
+  | grep -v '^junpiks-' || true)"
+
+if [ -n "$PORT_CONFLICTS" ]; then
+  echo "오류: 다른 컨테이너가 필요한 포트를 사용 중입니다." >&2
+  echo "" >&2
+  echo "$PORT_CONFLICTS" | while IFS='|' read -r name ports; do
+    echo "    $name  ($ports)" >&2
+  done
+  echo "" >&2
+  echo "  서버에서 아래로 정리하세요 (볼륨은 유지됩니다):" >&2
+  echo "$PORT_CONFLICTS" | cut -d'|' -f1 | tr '\n' ' ' | \
+    sed 's/^/    docker rm -f /' >&2
+  echo "" >&2
   exit 1
 fi
 
@@ -157,7 +203,7 @@ extract_over_workdir() {
 extract_over_workdir "$UPLOAD_TARBALL"
 rm -f "$UPLOAD_TARBALL"
 chmod +x scripts/*.sh 2>/dev/null || true
-echo "전개 완료 ($(find . -mindepth 1 -maxdepth 1 | wc -l) 항목)"
+echo "전개 완료 ($(find . -mindepth 1 -maxdepth 1 | wc -l | tr -d " ") 항목)"
 
 # ---------------------------------------------------------------------------
 log "4/6 이미지 빌드"
@@ -173,7 +219,10 @@ log "5/6 컨테이너 교체"
 if ! docker compose run --rm --entrypoint sh certbot \
        -c "test -s /etc/letsencrypt/live/$DOMAIN/fullchain.pem" 2>/dev/null; then
   echo "HTTPS 인증서가 아직 없습니다. nginx 를 제외하고 앱만 기동합니다."
-  docker compose up -d --remove-orphans mariadb migrate next-app
+  if ! docker compose up -d --remove-orphans mariadb migrate next-app; then
+    dump_failure_logs
+    exit 1
+  fi
   docker compose ps
   echo ""
   echo "===================================================================="
@@ -187,7 +236,10 @@ if ! docker compose run --rm --entrypoint sh certbot \
 fi
 
 # migrate 서비스가 prisma migrate deploy 를 끝내야 next-app 이 뜬다
-docker compose up -d --remove-orphans
+if ! docker compose up -d --remove-orphans; then
+  dump_failure_logs
+  exit 1
+fi
 
 # ---------------------------------------------------------------------------
 log "6/6 헬스 확인"

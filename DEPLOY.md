@@ -296,6 +296,44 @@ vi .env                        # SERVER_NAMES 수정
 ./scripts/init-letsencrypt.sh  # 재발급
 ```
 
+### migrate 가 `P1001: Can't reach database server` 로 실패할 때
+
+MariaDB 는 최초 기동 시 `--skip-networking` 으로 임시 서버를 띄워
+시스템 테이블과 계정을 만든다. 이 구간에는 유닉스 소켓으로만 붙을 수 있어
+TCP 접속은 거부된다.
+
+이 때문에 최초 배포(빈 볼륨)에서만 간헐적으로 실패할 수 있어 두 겹으로 막아두었다.
+
+- `mariadb` 헬스체크가 소켓이 아니라 **TCP** 로 확인한다
+- `migrate` 컨테이너가 `scripts/wait-for-db.js` 로 TCP 연결을 최대 2분 기다린다
+
+그래도 같은 오류가 나면 DB 자체가 기동에 실패한 것이므로 아래를 본다.
+
+```bash
+cd /opt/junpiks
+docker compose logs mariadb | tail -40
+docker compose ps
+df -h                      # 디스크 여유 확인
+```
+
+### 배포가 포트 충돌로 실패할 때
+
+```
+오류: 다른 컨테이너가 필요한 포트를 사용 중입니다.
+    old-mariadb  (0.0.0.0:3306->3306/tcp)
+```
+
+이 스택 이전에 돌던 컨테이너가 80/443/3306 을 잡고 있는 경우다.
+배포 스크립트가 빌드 전에 감지하고 정리할 명령을 그대로 출력한다.
+
+```bash
+docker ps                          # 무엇이 떠 있는지 확인
+docker rm -f <컨테이너이름> ...      # 스크립트가 알려준 명령 그대로
+```
+
+> `docker stop` 만 하면 `restart: unless-stopped` 때문에 재부팅 시 되살아난다.
+> `rm -f` 까지 해야 한다. 컨테이너를 지워도 볼륨(데이터)은 남는다.
+
 ### 수동 롤백
 
 배포 실패 시에는 자동으로 직전 소스로 되돌아간다. 수동으로 되돌리려면

@@ -73,6 +73,9 @@ services:
     container_name: junpiks-migrate
     environment:
       <<: *database-url
+      # wait-for-db.js 가 TCP 연결을 확인할 대상
+      DB_HOST: mariadb
+      DB_PORT: "3306"
       ADMIN_USERNAME: ${ADMIN_USERNAME:-junpiks}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
     depends_on:
@@ -119,11 +122,19 @@ services:
     volumes:
       - mariadb_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
+      # healthcheck.sh --connect 는 유닉스 소켓으로 확인하기 때문에,
+      # 초기화 중 --skip-networking 으로 뜬 임시 서버도 healthy 로 잡힌다.
+      # 그러면 migrate 가 TCP 로 붙다가 P1001 로 죽으므로 TCP 로 확인한다.
+      test:
+        - CMD-SHELL
+        - >-
+          healthcheck.sh --connect --innodb_initialized &&
+          mariadb-admin ping --protocol=tcp -h 127.0.0.1
+          -u root -p"$$MARIADB_ROOT_PASSWORD" --silent
+      interval: 5s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 20
+      start_period: 40s
     restart: unless-stopped
     networks: [junpiks]
     logging: *default-logging

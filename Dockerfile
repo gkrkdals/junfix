@@ -33,9 +33,11 @@ FROM base AS migrator
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json tsconfig.json ./
 COPY prisma ./prisma
+COPY scripts/wait-for-db.js ./scripts/wait-for-db.js
 # 최초 1회 시딩 원본 (테이블이 비어 있을 때만 사용된다)
 COPY data ./data
-CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]
+# MariaDB 초기화 중에는 TCP 가 아직 안 열려 있어 바로 붙으면 P1001 이 난다.
+CMD ["sh", "-c", "node scripts/wait-for-db.js && npx prisma migrate deploy && npx prisma db seed"]
 
 # --- 4) 런타임 --------------------------------------------------------------
 FROM base AS runner
