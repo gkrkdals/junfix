@@ -1,0 +1,139 @@
+// Prisma 스키마 (MariaDB / MySQL 호환)
+//
+// 배열 성격의 컬럼(symptoms, causes, workProcess, equipment)은
+// JSON 문자열을 담은 TEXT 로 저장한다. MariaDB 의 JSON 은 LONGTEXT 별칭이라
+// 네이티브 Json 타입을 쓰는 것보다 이 편이 드라이버 호환성이 안정적이다.
+// 직렬화/역직렬화는 lib/repository.ts 의 코덱이 전담한다.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. 관리자 계정
+model AdminUser {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique @db.VarChar(50)
+  // scrypt 해시. 형식: scrypt:<saltHex>:<hashHex> (lib/password.ts)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         String   @default("admin") @db.VarChar(20)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("admin_users")
+}
+
+// 2. 사이트 기본 설정 및 업체 정보 (단일 행으로 운용)
+model SiteSetting {
+  id                 Int      @id @default(autoincrement())
+  siteName           String   @default("준픽스 (JUNFIX)") @map("site_name") @db.VarChar(100)
+  tagline            String   @default("막힘은 해결하고, 일상은 흐르게 - 젊은 기술, 정직한 서비스") @db.VarChar(200)
+  representativeName String   @default("염준혁") @map("representative_name") @db.VarChar(50)
+  phoneNumber        String   @default("010-2703-1491") @map("phone_number") @db.VarChar(30)
+  telNumber          String   @default("010-2703-1491") @map("tel_number") @db.VarChar(30)
+  kakaoTalkUrl       String   @default("https://open.kakao.com/me/junfix") @map("kakao_talk_url") @db.VarChar(255)
+  naverBlogUrl       String   @default("https://blog.naver.com/junfix_official") @map("naver_blog_url") @db.VarChar(255)
+  serviceAreas       String   @default("경기·수도권 전지역 출장 가능 (평일·주말 24시간 상담)") @map("service_areas") @db.VarChar(255)
+  businessNumber     String   @default("123-45-67890") @map("business_number") @db.VarChar(50)
+  address            String   @default("경기 및 수도권 전지역 긴급출동 대기") @db.VarChar(200)
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
+// 3. 서비스 마스터 (하수구, 싱크대, 변기, 에어컨 등)
+model Service {
+  id               Int         @id @default(autoincrement())
+  slug             String      @unique @db.VarChar(50)
+  category         String      @db.VarChar(50) // 'plumbing' | 'aircon'
+  title            String      @db.VarChar(100)
+  subtitle         String      @db.VarChar(200)
+  iconName         String      @map("icon_name") @db.VarChar(50)
+  symptoms         String      @db.Text // JSON 문자열 배열
+  causes           String      @db.Text // JSON 문자열 배열
+  inspectionMethod String      @map("inspection_method") @db.Text
+  workProcess      String      @map("work_process") @db.Text // JSON 문자열 배열
+  equipment        String      @db.Text // JSON 문자열 배열
+  orderNum         Int         @default(0) @map("order_num")
+  isActive         Boolean     @default(true) @map("is_active")
+  caseStudies      CaseStudy[]
+
+  @@index([isActive, orderNum])
+  @@map("services")
+}
+
+// 4. 시공사례 (Before & After)
+model CaseStudy {
+  id              Int      @id @default(autoincrement())
+  serviceId       Int?     @map("service_id")
+  title           String   @db.VarChar(200)
+  serviceCategory String   @map("service_category") @db.VarChar(100)
+  region          String   @db.VarChar(100)
+  symptom         String   @db.VarChar(255)
+  cause           String   @db.Text
+  solution        String   @db.Text
+  equipment       String   @db.VarChar(255)
+  beforeImageUrl  String   @map("before_image_url") @db.Text
+  afterImageUrl   String   @map("after_image_url") @db.Text
+  naverBlogLink   String   @default("") @map("naver_blog_link") @db.VarChar(255)
+  date            String   @db.VarChar(30)
+  isFeatured      Boolean  @default(false) @map("is_featured")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  service Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  @@index([serviceId])
+  @@index([isFeatured, createdAt])
+  @@map("case_studies")
+}
+
+// 5. 작업비용 안내
+model PricingItem {
+  id           Int     @id @default(autoincrement())
+  serviceName  String  @map("service_name") @db.VarChar(100)
+  category     String  @default("fixed") @db.VarChar(50) // 'fixed' | 'quote'
+  priceDisplay String  @map("price_display") @db.VarChar(100)
+  description  String  @db.VarChar(255)
+  notice       String  @default("") @db.VarChar(255)
+  orderNum     Int     @default(0) @map("order_num")
+  isActive     Boolean @default(true) @map("is_active")
+
+  @@index([isActive, orderNum])
+  @@map("pricing_items")
+}
+
+// 6. 고객 후기
+model Review {
+  id           Int      @id @default(autoincrement())
+  customerName String   @map("customer_name") @db.VarChar(50)
+  region       String   @default("") @db.VarChar(50)
+  serviceType  String   @default("") @map("service_type") @db.VarChar(50)
+  rating       Int      @default(5)
+  comment      String   @db.Text
+  date         String   @db.VarChar(20)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([isActive, createdAt])
+  @@map("reviews")
+}
+
+// 7. 고객 상담/출동 접수
+model Inquiry {
+  id            Int      @id @default(autoincrement())
+  customerName  String   @map("customer_name") @db.VarChar(50)
+  phoneNumber   String   @map("phone_number") @db.VarChar(30)
+  region        String   @db.VarChar(100)
+  serviceType   String   @map("service_type") @db.VarChar(100)
+  description   String   @default("") @db.Text
+  preferredTime String   @default("") @map("preferred_time") @db.VarChar(100)
+  status        String   @default("접수완료") @db.VarChar(20)
+  memo          String   @default("") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([status, createdAt])
+  @@map("inquiries")
+}

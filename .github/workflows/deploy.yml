@@ -1,0 +1,157 @@
+name: Deploy to production
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+  workflow_dispatch:   # Actions 탭에서 수동 재배포
+
+# 배포는 겹치면 안 되므로 직렬화 (진행 중인 배포는 취소하지 않음)
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  # --- 1) 깨진 코드/마이그레이션이 서버로 나가지 않도록 먼저 검증 ------------
+  build-check:
+    name: Build & migration check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: ci-root
+          MARIADB_DATABASE: junpics_ci
+          MARIADB_USER: ci
+          MARIADB_PASSWORD: ci-pw
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      DATABASE_URL: 'mysql://ci:ci-pw@127.0.0.1:3306/junpics_ci'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 마이그레이션이 실제 MariaDB 에 적용되는지 확인한다.
+      # 여기서 깨지면 서버에서는 migrate 컨테이너가 실패해 배포가 멈춘다.
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+
+      - name: Seed check
+        run: npx prisma db seed
+        env:
+          ADMIN_PASSWORD: ci-only-password
+
+      - name: Build
+        run: npm run build
+
+  # --- 2) 서버에 접속해 빌드 + 마이그레이션 + 컨테이너 교체 ------------------
+  deploy:
+    name: Build & deploy on server
+    needs: build-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          command_timeout: 30m
+          script_stop: true
+          script: |
+            set -euo pipefail
+
+            DEPLOY_PATH="${{ vars.DEPLOY_PATH || '/opt/junpiks' }}"
+            cd "$DEPLOY_PATH"
+
+            echo "::group::현재 리비전"
+            PREV_SHA="$(git rev-parse HEAD)"
+            echo "before: $PREV_SHA"
+            echo "::endgroup::"
+
+            echo "::group::DB 백업"
+            # 마이그레이션이 스키마를 바꾸므로 배포 직전에 항상 덤프를 남긴다.
+            mkdir -p backups
+            if docker compose ps --status running --services 2>/dev/null | grep -qx mariadb; then
+              DUMP="backups/pre-deploy-$(date +%F_%H%M%S).sql"
+              if docker compose exec -T mariadb sh -c \
+                   'exec mariadb-dump -uroot -p"$MARIADB_ROOT_PASSWORD" --single-transaction --routines "$MARIADB_DATABASE"' \
+                   > "$DUMP"; then
+                echo "백업 완료: $DUMP ($(wc -c < "$DUMP") bytes)"
+                ls -1t backups/*.sql | tail -n +15 | xargs -r rm --   # 최근 14개만 보관
+              else
+                # 백업에 실패했다면 마이그레이션을 강행하지 않는다.
+                rm -f "$DUMP"
+                echo "DB 백업 실패 - 배포를 중단한다."
+                exit 1
+              fi
+            else
+              echo "mariadb 컨테이너가 없음 (최초 배포로 간주) - 백업 건너뜀"
+            fi
+            echo "::endgroup::"
+
+            echo "::group::소스 동기화"
+            git fetch --prune origin
+            git reset --hard "origin/${{ github.ref_name }}"
+            git rev-parse HEAD
+            echo "::endgroup::"
+
+            echo "::group::이미지 빌드"
+            # 빌드 실패 시 아래 up 까지 가지 않으므로 기존 컨테이너가 계속 서비스한다
+            docker compose build
+            echo "::endgroup::"
+
+            echo "::group::마이그레이션 + 컨테이너 교체"
+            # migrate 서비스가 prisma migrate deploy 를 먼저 끝내야 next-app 이 뜬다
+            docker compose up -d --remove-orphans
+            echo "::endgroup::"
+
+            echo "::group::헬스 확인"
+            ok=0
+            for i in $(seq 1 30); do
+              if curl -fsS -o /dev/null http://127.0.0.1/healthz \
+                 && curl -fsS -o /dev/null http://127.0.0.1/; then
+                ok=1; break
+              fi
+              sleep 3
+            done
+
+            if [ "$ok" -ne 1 ]; then
+              echo "헬스체크 실패 -> $PREV_SHA 로 롤백"
+              docker compose logs --tail=80 migrate next-app nginx || true
+              git reset --hard "$PREV_SHA"
+              docker compose build
+              docker compose up -d --remove-orphans
+              echo "주의: 코드는 롤백됐지만 DB 마이그레이션은 되돌아가지 않는다."
+              echo "스키마 변경이 원인이면 backups/ 의 덤프로 수동 복원할 것."
+              exit 1
+            fi
+            docker compose ps
+            echo "::endgroup::"
+
+            echo "::group::정리"
+            docker image prune -f
+            echo "::endgroup::"

@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-navy: #071739;
+  --primary-navy-dark: #040d21;
+  --primary-cyan: #00b4d8;
+  --primary-cyan-light: #90e0ef;
+  --accent-red: #e11d48;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: #1e293b;
+  background-color: #f8fafc;
+  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+/* Custom Utilities */
+.bg-navy-dark {
+  background-color: #040d21;
+}
+
+.bg-navy {
+  background-color: #071739;
+}
+
+.text-cyan-brand {
+  color: #00b4d8;
+}
+
+.bg-cyan-brand {
+  background-color: #00b4d8;
+}
+
+.gradient-brand {
+  background: linear-gradient(135deg, #071739 0%, #0a2558 50%, #0077b6 100%);
+}
+
+.gradient-cyan {
+  background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
+}
+
+/* Pulse animation for emergency banner and call buttons */
+@keyframes call-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 180, 216, 0.6);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 10px rgba(0, 180, 216, 0);
+  }
+}
+
+.animate-call-pulse {
+  animation: call-pulse 2s infinite ease-in-out;
+}

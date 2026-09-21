@@ -1,0 +1,100 @@
+# ---------------------------------------------------------------------------
+# junpiks 프로덕션 스택
+#   nginx(80) -> next-app(3000) -> mariadb(3306)
+#   기동 순서: mariadb(healthy) -> migrate(완료) -> next-app(healthy) -> nginx
+# 값은 같은 디렉터리의 .env 에서 주입된다 (.env.example 참고)
+# ---------------------------------------------------------------------------
+
+x-database-url: &database-url
+  DATABASE_URL: "mysql://${MARIADB_USER:?set MARIADB_USER in .env}:${MARIADB_PASSWORD:?set MARIADB_PASSWORD in .env}@mariadb:3306/${MARIADB_DATABASE:?set MARIADB_DATABASE in .env}"
+
+x-logging: &default-logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: junpiks-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      next-app:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [junpiks]
+    logging: *default-logging
+
+  # DB 스키마 적용 + 최초 1회 시딩. 완료 후 종료되는 1회성 컨테이너.
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
+    image: junpiks-migrate:latest
+    container_name: junpiks-migrate
+    environment:
+      <<: *database-url
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-junpiks}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: "no"
+    networks: [junpiks]
+    logging: *default-logging
+
+  next-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    image: junpiks-web:latest
+    container_name: junpiks-next-app
+    environment:
+      <<: *database-url
+      NODE_ENV: production
+      PORT: "3000"
+      # 관리자 세션 쿠키 서명키. 바뀌면 기존 로그인 세션이 모두 무효화된다.
+      ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:?set ADMIN_SESSION_SECRET in .env}
+    expose:
+      - "3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    networks: [junpiks]
+    logging: *default-logging
+
+  mariadb:
+    image: mariadb:11
+    container_name: junpiks-mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?set MARIADB_ROOT_PASSWORD in .env}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:?set MARIADB_DATABASE in .env}
+      MARIADB_USER: ${MARIADB_USER:?set MARIADB_USER in .env}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?set MARIADB_PASSWORD in .env}
+    ports:
+      # 기본값은 루프백 바인딩(외부 노출 안 함).
+      # 외부에서 직접 접속해야 하면 .env 에 MARIADB_BIND=0.0.0.0 설정.
+      - "${MARIADB_BIND:-127.0.0.1}:3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    networks: [junpiks]
+    logging: *default-logging
+
+volumes:
+  mariadb_data:
+
+networks:
+  junpiks:
+    driver: bridge

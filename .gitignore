@@ -1,0 +1,30 @@
+# 의존성
+/node_modules
+/.pnp
+.pnp.js
+
+# 빌드 산출물
+/.next/
+/out/
+/build
+next-env.d.ts
+
+# 환경변수 (서버/로컬 각각 직접 생성)
+.env
+.env.local
+.env.*.local
+
+# 런타임 로그
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# OS / 에디터
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# 타입체크 캐시
+*.tsbuildinfo
