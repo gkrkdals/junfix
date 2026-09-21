@@ -18,11 +18,47 @@ services:
     container_name: junpiks-nginx
     ports:
       - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+      # server_name 에 들어갈 목록. 기본은 DOMAIN 하나.
+      SERVER_NAMES: ${SERVER_NAMES:-${DOMAIN}}
+      # 템플릿에서 치환할 변수를 이 둘로 제한한다.
+      # (제한하지 않으면 envsubst 가 다른 환경변수까지 건드릴 수 있다)
+      NGINX_ENVSUBST_FILTER: "^(DOMAIN|SERVER_NAMES)$$"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      # templates/*.template -> envsubst -> /etc/nginx/conf.d/*.conf
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - ./nginx/snippets:/etc/nginx/snippets:ro
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
     depends_on:
       next-app:
         condition: service_healthy
+    restart: unless-stopped
+    networks: [junpiks]
+    logging: *default-logging
+    # 갱신된 인증서를 6시간마다 다시 읽는다 (reload 는 무중단).
+    # 공식 엔트리포인트는 첫 인자가 nginx 일 때만 templates/ 를 envsubst 하므로,
+    # 백그라운드 루프를 띄운 뒤 반드시 엔트리포인트를 통해 nginx 를 실행한다.
+    command: >-
+      sh -c "while :; do sleep 6h & wait $${!}; nginx -s reload; done &
+             exec /docker-entrypoint.sh nginx -g 'daemon off;'"
+
+  # 인증서 자동 갱신. 12시간마다 만료 임박한 인증서를 갱신한다.
+  # 최초 발급은 scripts/init-letsencrypt.sh 가 담당한다.
+  certbot:
+    image: certbot/certbot:latest
+    container_name: junpiks-certbot
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: >-
+      sh -c "trap exit TERM;
+             while :; do
+               certbot renew --webroot -w /var/www/certbot --quiet;
+               sleep 12h & wait $${!};
+             done"
     restart: unless-stopped
     networks: [junpiks]
     logging: *default-logging
@@ -94,6 +130,8 @@ services:
 
 volumes:
   mariadb_data:
+  certbot_conf:
+  certbot_www:
 
 networks:
   junpiks:

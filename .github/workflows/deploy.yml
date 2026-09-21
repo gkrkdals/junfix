@@ -64,94 +64,49 @@ jobs:
       - name: Build
         run: npm run build
 
-  # --- 2) 서버에 접속해 빌드 + 마이그레이션 + 컨테이너 교체 ------------------
+  # --- 2) 소스를 서버로 올리고 서버에서 빌드/배포 ---------------------------
   deploy:
     name: Build & deploy on server
     needs: build-check
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: production
+
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_PORT: ${{ secrets.SSH_PORT || 22 }}
+      SSHPASS: ${{ secrets.SSH_PASSWORD }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/opt/junpiks' }}
+      REMOTE_TARBALL: /tmp/junpiks-source.tar.gz
+
     steps:
-      - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          command_timeout: 30m
-          script_stop: true
-          script: |
-            set -euo pipefail
+      - uses: actions/checkout@v4
 
-            DEPLOY_PATH="${{ vars.DEPLOY_PATH || '/opt/junpiks' }}"
-            cd "$DEPLOY_PATH"
+      - name: sshpass 설치
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq sshpass
 
-            echo "::group::현재 리비전"
-            PREV_SHA="$(git rev-parse HEAD)"
-            echo "before: $PREV_SHA"
-            echo "::endgroup::"
+      # git 이 추적하는 파일만 담는다 (node_modules / .next / .env 는 제외됨)
+      - name: 소스 아카이브 생성
+        run: |
+          git archive --format=tar.gz -o source.tar.gz HEAD
+          echo "크기: $(du -h source.tar.gz | cut -f1)"
+          tar tzf source.tar.gz | wc -l | xargs echo "파일 수:"
 
-            echo "::group::DB 백업"
-            # 마이그레이션이 스키마를 바꾸므로 배포 직전에 항상 덤프를 남긴다.
-            mkdir -p backups
-            if docker compose ps --status running --services 2>/dev/null | grep -qx mariadb; then
-              DUMP="backups/pre-deploy-$(date +%F_%H%M%S).sql"
-              if docker compose exec -T mariadb sh -c \
-                   'exec mariadb-dump -uroot -p"$MARIADB_ROOT_PASSWORD" --single-transaction --routines "$MARIADB_DATABASE"' \
-                   > "$DUMP"; then
-                echo "백업 완료: $DUMP ($(wc -c < "$DUMP") bytes)"
-                ls -1t backups/*.sql | tail -n +15 | xargs -r rm --   # 최근 14개만 보관
-              else
-                # 백업에 실패했다면 마이그레이션을 강행하지 않는다.
-                rm -f "$DUMP"
-                echo "DB 백업 실패 - 배포를 중단한다."
-                exit 1
-              fi
-            else
-              echo "mariadb 컨테이너가 없음 (최초 배포로 간주) - 백업 건너뜀"
-            fi
-            echo "::endgroup::"
+      - name: 서버로 업로드
+        run: |
+          sshpass -e scp \
+            -o StrictHostKeyChecking=accept-new \
+            -P "$SSH_PORT" \
+            source.tar.gz "$SSH_USER@$SSH_HOST:$REMOTE_TARBALL"
 
-            echo "::group::소스 동기화"
-            git fetch --prune origin
-            git reset --hard "origin/${{ github.ref_name }}"
-            git rev-parse HEAD
-            echo "::endgroup::"
-
-            echo "::group::이미지 빌드"
-            # 빌드 실패 시 아래 up 까지 가지 않으므로 기존 컨테이너가 계속 서비스한다
-            docker compose build
-            echo "::endgroup::"
-
-            echo "::group::마이그레이션 + 컨테이너 교체"
-            # migrate 서비스가 prisma migrate deploy 를 먼저 끝내야 next-app 이 뜬다
-            docker compose up -d --remove-orphans
-            echo "::endgroup::"
-
-            echo "::group::헬스 확인"
-            ok=0
-            for i in $(seq 1 30); do
-              if curl -fsS -o /dev/null http://127.0.0.1/healthz \
-                 && curl -fsS -o /dev/null http://127.0.0.1/; then
-                ok=1; break
-              fi
-              sleep 3
-            done
-
-            if [ "$ok" -ne 1 ]; then
-              echo "헬스체크 실패 -> $PREV_SHA 로 롤백"
-              docker compose logs --tail=80 migrate next-app nginx || true
-              git reset --hard "$PREV_SHA"
-              docker compose build
-              docker compose up -d --remove-orphans
-              echo "주의: 코드는 롤백됐지만 DB 마이그레이션은 되돌아가지 않는다."
-              echo "스키마 변경이 원인이면 backups/ 의 덤프로 수동 복원할 것."
-              exit 1
-            fi
-            docker compose ps
-            echo "::endgroup::"
-
-            echo "::group::정리"
-            docker image prune -f
-            echo "::endgroup::"
+      # 배포 로직은 scripts/deploy-remote.sh 에 있고, stdin 으로 흘려보낸다.
+      # 서버에 스크립트를 미리 둘 필요가 없다.
+      - name: 서버에서 빌드 및 배포
+        run: |
+          sshpass -e ssh \
+            -o StrictHostKeyChecking=accept-new \
+            -p "$SSH_PORT" \
+            "$SSH_USER@$SSH_HOST" \
+            "bash -s -- '$DEPLOY_PATH' '$REMOTE_TARBALL'" \
+            < scripts/deploy-remote.sh
