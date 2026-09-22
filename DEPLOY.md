@@ -278,7 +278,9 @@ Actions 는 서버에서 `git pull` 을 하지 않는다. 대신 이렇게 동�
 1. 러너가 `git archive` 로 커밋된 파일만 `source.tar.gz` 로 묶는다
    (`node_modules`, `.next`, `.env` 는 애초에 포함되지 않는다)
 2. `scp` 로 서버의 `/tmp` 에 올린다
-3. `scripts/deploy-remote.sh` 를 SSH 표준입력으로 흘려보내 실행한다
+3. `scripts/deploy-remote.sh` 를 SSH 로 서버 `/tmp` 에 올린 뒤 파일로 실행한다
+   (표준입력에서 직접 실행하면 스크립트 안의 `docker compose exec` 가 stdin 을 삼켜
+   백업 단계 직후 조용히 끝나버리므로 반드시 파일로 실행한다)
 
 덕분에 **서버에 GitHub 접근 권한(Deploy key, 토큰)이 전혀 필요 없다.**
 

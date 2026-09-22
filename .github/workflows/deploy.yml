@@ -100,13 +100,15 @@ jobs:
             -P "$SSH_PORT" \
             source.tar.gz "$SSH_USER@$SSH_HOST:$REMOTE_TARBALL"
 
-      # 배포 로직은 scripts/deploy-remote.sh 에 있고, stdin 으로 흘려보낸다.
-      # 서버에 스크립트를 미리 둘 필요가 없다.
+      # 배포 로직은 scripts/deploy-remote.sh 에 있다. 서버에 미리 둘 필요 없이
+      # 매번 stdin 으로 올려 /tmp 에 저장한 뒤 "파일로" 실행한다.
+      # (bash -s 로 stdin 에서 직접 실행하면 스크립트 안의 docker compose exec 가
+      #  stdin 을 삼켜 스크립트가 중간에 조용히 끝나버린다)
       - name: 서버에서 빌드 및 배포
         run: |
           sshpass -e ssh \
             -o StrictHostKeyChecking=accept-new \
             -p "$SSH_PORT" \
             "$SSH_USER@$SSH_HOST" \
-            "bash -s -- '$DEPLOY_PATH' '$REMOTE_TARBALL'" \
+            "cat > /tmp/junpiks-deploy.sh && bash /tmp/junpiks-deploy.sh '$DEPLOY_PATH' '$REMOTE_TARBALL'" \
             < scripts/deploy-remote.sh

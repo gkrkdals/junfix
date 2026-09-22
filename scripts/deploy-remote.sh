@@ -147,9 +147,10 @@ log "1/6 DB 백업"
 mkdir -p backups
 if docker compose ps --status running --services 2>/dev/null | grep -qx mariadb; then
   DUMP="backups/pre-deploy-$(date +%F_%H%M%S).sql"
+  # </dev/null : docker 가 stdin 을 붙잡지 않도록 (stdin 으로 실행될 때 스크립트를 삼킨다)
   if docker compose exec -T mariadb sh -c \
        'exec mariadb-dump -uroot -p"$MARIADB_ROOT_PASSWORD" --single-transaction --routines "$MARIADB_DATABASE"' \
-       > "$DUMP"; then
+       < /dev/null > "$DUMP"; then
     echo "백업 완료: $DUMP ($(wc -c < "$DUMP" | tr -d " ") bytes)"
     # 최근 14개만 보관
     ls -1t backups/*.sql 2>/dev/null | tail -n +15 | xargs -r rm --
@@ -216,8 +217,8 @@ log "5/6 컨테이너 교체"
 # ---------------------------------------------------------------------------
 # nginx 는 인증서 파일이 없으면 기동 자체가 실패한다.
 # 최초 배포 시점에는 아직 인증서가 없으므로 앱까지만 올리고 안내하고 끝낸다.
-if ! docker compose run --rm --entrypoint sh certbot \
-       -c "test -s /etc/letsencrypt/live/$DOMAIN/fullchain.pem" 2>/dev/null; then
+if ! docker compose run --rm -T --entrypoint sh certbot \
+       -c "test -s /etc/letsencrypt/live/$DOMAIN/fullchain.pem" < /dev/null 2>/dev/null; then
   echo "HTTPS 인증서가 아직 없습니다. nginx 를 제외하고 앱만 기동합니다."
   if ! docker compose up -d --remove-orphans mariadb migrate next-app; then
     dump_failure_logs
