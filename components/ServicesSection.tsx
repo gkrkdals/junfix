@@ -30,7 +30,7 @@ export function ServiceIcon({ name, className = 'w-5 h-5' }: { name: string; cla
   }
 }
 
-/** 서비스 카드: 아이콘 → 제목 → 한 줄 설명 → 자세히 보기. 모든 카드가 같은 높이·간격을 갖는다. */
+/** 서비스 카드: 아이콘 → 제목 → 자세히 보기. 한 줄 설명은 상세 안내창 상단에서 보여준다. */
 export default function ServicesSection({ services, caseStudies }: Props) {
   const [selected, setSelected] = useState<ServiceItem | null>(null);
   const [selectedCase, setSelectedCase] = useState<CaseStudy | null>(null);
@@ -52,9 +52,8 @@ export default function ServicesSection({ services, caseStudies }: Props) {
               <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-sky-100 text-brand flex items-center justify-center mb-3">
                 <ServiceIcon name={service.iconName} />
               </div>
-              <h3 className="card-title min-h-[2.6em] line-clamp-2 group-hover:text-brand transition">{service.title}</h3>
-              <p className="card-desc mt-1.5 line-clamp-2 min-h-[2.8em]">{service.subtitle}</p>
-              <span className="mt-auto pt-3 text-[13px] font-bold text-brand inline-flex items-center gap-0.5">
+              <h3 className="card-title line-clamp-2 group-hover:text-brand transition">{service.title}</h3>
+              <span className="mt-auto pt-2.5 text-[13px] font-bold text-brand inline-flex items-center gap-0.5">
                 자세히 보기 <ChevronRight className="w-4 h-4" />
               </span>
             </button>
