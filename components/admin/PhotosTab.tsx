@@ -118,7 +118,7 @@ export default function PhotosTab({ photos, reload, toast }: Props) {
     <div className="space-y-6">
       <Card
         title="업체 사진 갤러리"
-        description="작업차량, 장비, 현장 사진을 올리면 홈페이지 '준픽스 소개' 아래에 가로로 나열됩니다. 사진이 없으면 그 영역은 보이지 않습니다."
+        description="작업차량, 장비, 현장 사진을 올리면 홈페이지 '실제 작업 사례' 아래에 가로로 나열됩니다. 사진이 없으면 그 영역은 보이지 않습니다."
       >
         <div className="space-y-5">
           <ImageUploader multiple value={[]} onChange={addPhotos} label="사진 추가" hint="여러 장을 한 번에 선택할 수 있습니다." />

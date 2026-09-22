@@ -10,8 +10,7 @@ import { telHref } from '@/lib/contact';
 export const MENU = [
   { href: '#services', label: '서비스 안내' },
   { href: '#pricing', label: '작업비용' },
-  { href: '#cases', label: '시공사례' },
-  { href: '#about', label: '준픽스 소개' },
+  { href: '#cases', label: '작업 사례' },
   { href: '#reviews', label: '고객후기' },
   { href: '#contact', label: '상담문의' },
 ];

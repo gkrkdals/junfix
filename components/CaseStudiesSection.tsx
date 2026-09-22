@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { MapPin, Calendar, ExternalLink, ImageOff, ChevronRight } from 'lucide-react';
-import type { CaseStudy, ServiceItem } from '@/lib/types';
+import type { CaseStudy, ServiceItem, SitePhoto } from '@/lib/types';
 import BeforeAfterSlider from './BeforeAfterSlider';
 import CaseDetailModal from './CaseDetailModal';
 import SectionHeader from './SectionHeader';
@@ -13,11 +13,12 @@ import { useSiteSettings } from '@/components/SiteSettingsProvider';
 interface Props {
   cases: CaseStudy[];
   services: ServiceItem[];
+  photos?: SitePhoto[];
 }
 
 const PAGE_SIZE = 6;
 
-export default function CaseStudiesSection({ cases, services }: Props) {
+export default function CaseStudiesSection({ cases, services, photos = [] }: Props) {
   const s = useSiteSettings();
   const [filter, setFilter] = useState('전체');
   const [selected, setSelected] = useState<CaseStudy | null>(null);
@@ -43,7 +44,7 @@ export default function CaseStudiesSection({ cases, services }: Props) {
   return (
     <section id="cases" className="section bg-white">
       <div className="container-x">
-        <SectionHeader label="시공사례" title="실제 현장 작업 기록" desc="현장에서 직접 찍은 작업 전·후 사진과 작업 내용입니다." action={blogButton || undefined} />
+        <SectionHeader label="시공사례" title="실제 작업 사례" desc="현장에서 직접 찍은 작업 전·후 사진과 작업 내용입니다." action={blogButton || undefined} />
 
         {featured && (
           <div className="mb-6 sm:mb-8 card">
@@ -143,6 +144,22 @@ export default function CaseStudiesSection({ cases, services }: Props) {
               </div>
             )}
           </>
+        )}
+
+        {photos.length > 0 && (
+          <div className="mt-8">
+            <h3 className="card-title mb-3">작업차량 · 장비 · 현장</h3>
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x">
+              {photos.map((photo) => (
+                <figure key={photo.id} className="shrink-0 w-56 sm:w-64 snap-start">
+                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-200 border border-slate-200">
+                    <Image src={photo.url} alt={photo.caption || '준픽스 현장 사진'} fill className="object-cover" sizes="256px" />
+                  </div>
+                  {photo.caption && <figcaption className="mt-1.5 text-[12px] text-muted px-1 line-clamp-1">{photo.caption}</figcaption>}
+                </figure>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
