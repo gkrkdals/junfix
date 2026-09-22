@@ -89,8 +89,8 @@ export default function SettingsTab({ settings, reload, toast }: Props) {
 
       <Card title="로고 · 메인 이미지">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <ImageUploader label="로고 (선택)" value={form.logoImageUrl} onChange={(url) => set('logoImageUrl', url)} aspect="aspect-[3/1]" hint="비워두면 JUNFIX 글자 로고가 표시됩니다. 가로로 긴 투명 배경 PNG 권장." />
-          <ImageUploader label="메인 화면 이미지" value={form.heroImageUrl} onChange={(url) => set('heroImageUrl', url)} aspect="aspect-square" hint="첫 화면 오른쪽 이미지. 비워두면 기본 포스터가 표시됩니다. 작업 차량이나 현장 사진을 권장합니다." />
+          <ImageUploader label="로고 (선택)" value={form.logoImageUrl} onChange={(url) => set('logoImageUrl', url)} aspect="aspect-[3/1]" hint="비워두면 기본 JUNFIX 로고 이미지가 표시됩니다. 가로로 긴 투명 배경 PNG 권장." />
+          <ImageUploader label="메인 화면 이미지" value={form.heroImageUrl} onChange={(url) => set('heroImageUrl', url)} aspect="aspect-square" hint="첫 화면 오른쪽에 표시할 사진(선택). 비워두면 이미지 없이 문구만 표시됩니다. 작업 차량이나 현장 사진을 권장합니다." />
         </div>
       </Card>
 

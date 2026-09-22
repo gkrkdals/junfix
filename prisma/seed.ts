@@ -70,6 +70,7 @@ function serviceData(s: any) {
 const SEED_KEY = 'initial-data-v1';
 const CLEANUP_KEY = 'content-cleanup-v2';
 const CHANNELS_KEY = 'restore-channels-v3';
+const CONSOLIDATE_KEY = 'services-consolidate-v4';
 
 /** 데이터 적재를 이미 했는지 판단한다. */
 async function alreadySeeded(): Promise<boolean> {
@@ -181,6 +182,57 @@ async function restoreChannels(src: any | null) {
   await prisma.seedState.create({ data: { key: CHANNELS_KEY } });
 }
 
+/**
+ * 서비스 통합 (1회). 8개 서비스를 6개로 합친다.
+ * - 시공사례의 서비스 연결(serviceId, serviceCategory)을 새 서비스로 이관
+ * - 새 slug 는 upsert (관리자가 올린 대표 사진은 유지), 사라지는 slug 는 삭제
+ */
+const SLUG_MERGE: Record<string, string | null> = {
+  'drain-clog': 'drain-sink',
+  'sink-clog': 'drain-sink',
+  'toilet-clog': 'toilet',
+  'toilet-replace': 'toilet',
+  'pipe-work': null,
+};
+
+async function consolidateServices(src: any | null) {
+  if (await prisma.seedState.findUnique({ where: { key: CONSOLIDATE_KEY } })) return;
+  const wanted: any[] = src?.services ?? [];
+  if (!wanted.length) return;
+
+  // 1) 새 서비스 upsert
+  const idBySlug = new Map<string, number>();
+  for (const w of wanted) {
+    const data = serviceData(w);
+    const existing = await prisma.service.findUnique({ where: { slug: w.slug } });
+    const row = existing
+      ? await prisma.service.update({ where: { id: existing.id }, data: { ...data, imageUrl: existing.imageUrl } })
+      : await prisma.service.create({ data: { ...data, slug: w.slug } });
+    idBySlug.set(w.slug, row.id);
+  }
+
+  // 2) 사례 이관 + 옛 서비스 삭제
+  let moved = 0;
+  let removed = 0;
+  for (const [oldSlug, newSlug] of Object.entries(SLUG_MERGE)) {
+    const old = await prisma.service.findUnique({ where: { slug: oldSlug } });
+    if (!old) continue;
+    const target = newSlug ? idBySlug.get(newSlug) ?? null : null;
+    const targetTitle = newSlug ? wanted.find((w) => w.slug === newSlug)?.title : undefined;
+    const res = await prisma.caseStudy.updateMany({
+      where: { serviceId: old.id },
+      data: { serviceId: target, ...(targetTitle ? { serviceCategory: targetTitle } : {}) },
+    });
+    moved += res.count;
+    await prisma.service.delete({ where: { id: old.id } });
+    removed += 1;
+  }
+
+  // 3) 원본에 없는 나머지 서비스는 관리자가 추가한 것으로 보고 유지, 순서만 뒤로
+  await prisma.seedState.create({ data: { key: CONSOLIDATE_KEY } });
+  console.log(`🧩 서비스 통합: ${wanted.length}개로 정리, 옛 서비스 ${removed}개 삭제, 시공사례 ${moved}건 이관`);
+}
+
 async function main() {
   /* 0. 관리자 계정 비밀번호 동기화 (매 배포마다) ------------------------- */
   const passwordHash = hashPassword(ADMIN_PASSWORD);
@@ -197,6 +249,7 @@ async function main() {
     console.log('✔ 초기 데이터는 이미 적재되어 있습니다. 건너뜁니다.');
     await cleanupLegacyContent(src);
     await restoreChannels(src);
+    await consolidateServices(src);
     return;
   }
 
@@ -278,6 +331,7 @@ async function main() {
   await prisma.seedState.create({ data: { key: SEED_KEY } });
   await prisma.seedState.create({ data: { key: CLEANUP_KEY } });
   await prisma.seedState.create({ data: { key: CHANNELS_KEY } });
+  await prisma.seedState.create({ data: { key: CONSOLIDATE_KEY } });
   console.log('🎉 초기 데이터 적재 완료 (다음 배포부터는 건너뜁니다)');
 }
 

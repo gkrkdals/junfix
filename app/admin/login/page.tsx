@@ -38,15 +38,15 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#071739] via-[#0a2558] to-[#040d21] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-navy via-navy-light to-navy-deep flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 border border-slate-200">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#00b4d8]/15 text-[#0077b6] mb-3">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand/15 text-brand mb-3">
             <Lock className="w-7 h-7" />
           </div>
           <div className="flex items-center justify-center">
-            <span className="text-2xl font-black text-[#071739]">JUNFI</span>
-            <span className="text-2xl font-black text-[#00b4d8]">X</span>
+            <span className="text-2xl font-black text-navy">JUNFI</span>
+            <span className="text-2xl font-black text-brand">X</span>
           </div>
           <h1 className="text-xl font-bold text-slate-900 mt-1">관리자 시스템 로그인</h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -73,7 +73,7 @@ export default function AdminLoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="아이디를 입력하세요"
-                className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#00b4d8] text-sm text-slate-900"
+                className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand text-sm text-slate-900"
               />
               <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
             </div>
@@ -90,7 +90,7 @@ export default function AdminLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="비밀번호를 입력하세요"
-                className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#00b4d8] text-sm text-slate-900"
+                className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand text-sm text-slate-900"
               />
               <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
             </div>
@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#00b4d8] to-[#0077b6] hover:brightness-110 text-white font-extrabold text-sm shadow-md transition flex items-center justify-center gap-2 mt-2"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand to-brand hover:brightness-110 text-white font-extrabold text-sm shadow-md transition flex items-center justify-center gap-2 mt-2"
           >
             {loading ? '확인 중...' : '로그인'}
             <ArrowRight className="w-4 h-4" />

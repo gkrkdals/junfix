@@ -80,12 +80,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="ko">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* Pretendard: 한글 가독성용 웹폰트 (동적 서브셋이라 필요한 글자만 내려받는다) */}
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+      <body className="min-h-screen flex flex-col bg-white text-ink font-sans">
         <SiteSettingsProvider settings={settings}>
           <Analytics settings={settings} />
           <ConversionTracker />

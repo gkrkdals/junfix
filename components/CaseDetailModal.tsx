@@ -66,7 +66,7 @@ export default function CaseDetailModal({ caseStudy: c, onClose }: Props) {
       ariaLabel={c.title}
       header={
         <>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2 text-xs font-bold text-[#00b4d8]">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2 text-xs font-bold text-brand">
             <span>{c.serviceCategory}</span>
             {c.region && (
               <span className="flex items-center gap-1 text-slate-300">
@@ -100,7 +100,7 @@ export default function CaseDetailModal({ caseStudy: c, onClose }: Props) {
           <a
             href={telHref(s.phoneNumber)}
             data-track="call_click"
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#0077b6] hover:bg-[#0096c7] text-white font-bold text-sm transition"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-brand hover:bg-brand-dark text-white font-bold text-sm transition"
           >
             <Phone className="w-4 h-4" /> 비슷한 문제 상담하기
           </a>

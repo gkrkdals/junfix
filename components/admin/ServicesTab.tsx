@@ -141,7 +141,7 @@ export default function ServicesTab({ services, reload, toast }: Props) {
     <>
       <Card
         title="서비스 안내"
-        description="홈페이지 서비스 카드와 상세 안내(증상 → 원인 → 점검 → 작업방법 → 장비)에 표시되는 내용입니다. 에어컨은 '에어컨' 분류로 두면 별도 영역에 표시됩니다."
+        description="홈페이지 서비스 카드(6개 기준, 모바일 2열)와 상세 안내(증상 → 원인 → 점검 → 작업방법 → 장비)에 표시되는 내용입니다. 한 줄 설명은 짧게(20자 내외) 적어야 카드가 깔끔합니다."
         actions={
           <Button
             onClick={() => {
@@ -222,8 +222,8 @@ export default function ServicesTab({ services, reload, toast }: Props) {
                 </Field>
                 <Field label="분류">
                   <select value={form.category} onChange={(e) => set('category', e.target.value as 'plumbing' | 'aircon')} className={inputClass}>
-                    <option value="plumbing">배관·설비 (메인 카드)</option>
-                    <option value="aircon">에어컨 (별도 영역)</option>
+                    <option value="plumbing">일반 (하수구·배관·누수 등)</option>
+                    <option value="aircon">에어컨</option>
                   </select>
                 </Field>
               </div>

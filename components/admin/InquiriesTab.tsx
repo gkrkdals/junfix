@@ -91,7 +91,7 @@ export default function InquiriesTab({ inquiries, reload, toast }: Props) {
             <button
               key={st}
               onClick={() => setFilter(st)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold ${filter === st ? 'bg-[#071739] text-white' : 'bg-slate-100 text-slate-600'}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold ${filter === st ? 'bg-navy text-white' : 'bg-slate-100 text-slate-600'}`}
             >
               {st}
             </button>
@@ -111,7 +111,7 @@ export default function InquiriesTab({ inquiries, reload, toast }: Props) {
                     <span className="font-bold text-slate-900">{inq.customerName}</span>
                     <a
                       href={telHref(inq.phoneNumber)}
-                      className="text-xs font-bold text-[#0077b6] bg-blue-50 px-2.5 py-1 rounded-md hover:bg-blue-100 inline-flex items-center gap-1"
+                      className="text-xs font-bold text-brand bg-blue-50 px-2.5 py-1 rounded-md hover:bg-blue-100 inline-flex items-center gap-1"
                     >
                       <Phone className="w-3 h-3" /> {inq.phoneNumber}
                     </a>

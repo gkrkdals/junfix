@@ -106,7 +106,7 @@ export default function ReviewsTab({ reviews, services, reload, toast }: Props) 
                         <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
                       ))}
                     </div>
-                    {r.serviceType && <span className="text-[10px] font-bold text-[#0077b6] bg-blue-50 px-1.5 py-0.5 rounded">{r.serviceType}</span>}
+                    {r.serviceType && <span className="text-[10px] font-bold text-brand bg-blue-50 px-1.5 py-0.5 rounded">{r.serviceType}</span>}
                     {!r.isActive && (
                       <span className="text-[10px] font-bold text-slate-500 inline-flex items-center gap-0.5">
                         <EyeOff className="w-3 h-3" /> 숨김

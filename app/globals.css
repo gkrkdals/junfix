@@ -2,12 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 브랜드 토큰 (tailwind.config.ts 의 colors 와 동일) */
 :root {
-  --primary-navy: #071739;
-  --primary-navy-dark: #040d21;
-  --primary-cyan: #00b4d8;
-  --primary-cyan-light: #90e0ef;
-  --accent-red: #e11d48;
+  --navy: #1b2a4a;
+  --navy-deep: #0f1d36;
+  --blue: #2f6bff;
+  --sky: #eaf2ff;
+  --ink: #1e293b;
+  --muted: #64748b;
 }
 
 html {
@@ -18,32 +20,63 @@ body {
   /* 한글 단어가 중간에서 끊기지 않도록 */
   word-break: keep-all;
   overflow-wrap: anywhere;
-  color: #1e293b;
-  background-color: #f8fafc;
-  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  color: var(--ink);
+  background-color: #ffffff;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Custom Utilities */
-.bg-navy-dark {
-  background-color: #040d21;
-}
-
-.bg-navy {
-  background-color: #071739;
-}
-
-.text-cyan-brand {
-  color: #00b4d8;
-}
-
-.bg-cyan-brand {
-  background-color: #00b4d8;
-}
-
-.gradient-brand {
-  background: linear-gradient(135deg, #071739 0%, #0a2558 50%, #0077b6 100%);
-}
-
-.gradient-cyan {
-  background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
+/* ---------------------------------------------------------------------
+   화면 전체에서 같은 규칙을 쓰는 타이포·간격 유틸
+   섹션: .section  / 머리: .section-label .section-title .section-desc
+   카드: .card .card-title .card-desc / 가격: .price .price-quote
+   --------------------------------------------------------------------- */
+@layer components {
+  .container-x {
+    @apply max-w-6xl mx-auto px-4 sm:px-6;
+  }
+  .section {
+    @apply py-12 sm:py-16;
+  }
+  .section-label {
+    @apply block text-xs sm:text-[13px] font-bold text-brand tracking-wide mb-1.5;
+  }
+  .section-title {
+    @apply text-[22px] sm:text-[32px] font-black text-navy leading-tight;
+  }
+  .section-desc {
+    @apply mt-2 text-sm sm:text-[15px] text-muted leading-relaxed max-w-xl;
+  }
+  .card {
+    @apply bg-white rounded-2xl border border-slate-200 p-4 sm:p-5;
+  }
+  .card-title {
+    @apply text-[16px] sm:text-[17px] font-bold text-navy leading-snug;
+  }
+  .card-desc {
+    @apply text-[13px] sm:text-sm text-muted leading-relaxed;
+  }
+  .price {
+    @apply text-[17px] sm:text-lg font-extrabold text-red-600 whitespace-nowrap;
+  }
+  .price-quote {
+    @apply inline-block px-2.5 py-1 rounded-lg bg-sky-100 text-brand text-[13px] font-bold whitespace-nowrap;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl font-bold transition active:scale-[0.98] disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-navy text-white hover:bg-navy-light;
+  }
+  .btn-brand {
+    @apply btn bg-brand text-white hover:bg-brand-dark;
+  }
+  .btn-kakao {
+    @apply btn bg-[#FEE500] text-[#191919] hover:bg-[#FDD800];
+  }
+  .btn-ghost {
+    @apply btn bg-white text-navy border border-slate-300 hover:bg-slate-50;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-[13px] font-semibold text-navy;
+  }
 }

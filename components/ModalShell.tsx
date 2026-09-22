@@ -39,7 +39,7 @@ export default function ModalShell({ onClose, header, footer, children, maxWidth
         className={`relative bg-white w-full ${maxWidth} rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] sm:max-h-[90vh] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-[#071739] text-white p-5 sm:p-7 relative shrink-0">
+        <div className="bg-navy text-white p-5 sm:p-7 relative shrink-0">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition"

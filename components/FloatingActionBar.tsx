@@ -39,7 +39,7 @@ export default function FloatingActionBar() {
         <a
           href={telHref(s.phoneNumber)}
           data-track="call_click"
-          className="flex flex-col items-center justify-center py-2 rounded-xl bg-[#0077b6] text-white active:scale-95 transition"
+          className="flex flex-col items-center justify-center py-2 rounded-xl bg-brand text-white active:scale-95 transition"
         >
           <Phone className="w-5 h-5 mb-0.5" />
           <span className="text-[11px] font-bold">전화하기</span>

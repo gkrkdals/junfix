@@ -91,10 +91,10 @@ export default function ImageUploader(props: SingleProps | MultiProps) {
         if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
       }}
       className={`${aspect} w-full rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5 cursor-pointer text-slate-500 transition ${
-        dragOver ? 'border-[#00b4d8] bg-[#00b4d8]/5' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'
+        dragOver ? 'border-brand bg-brand/5' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'
       }`}
     >
-      {busy ? <Loader2 className="w-6 h-6 animate-spin text-[#0077b6]" /> : <ImagePlus className="w-6 h-6" />}
+      {busy ? <Loader2 className="w-6 h-6 animate-spin text-brand" /> : <ImagePlus className="w-6 h-6" />}
       <span className="text-xs font-semibold">{busy ? '올리는 중...' : '사진 선택 / 촬영'}</span>
       {!busy && <span className="text-[10px] text-slate-400">JPG · PNG · HEIC, 10MB 이하</span>}
     </div>

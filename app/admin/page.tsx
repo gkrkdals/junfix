@@ -92,13 +92,13 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
-      <header className="bg-[#071739] text-white py-3 px-4 sm:px-6 sticky top-0 z-30 shadow-md">
+      <header className="bg-navy text-white py-3 px-4 sm:px-6 sticky top-0 z-30 shadow-md">
         <div className="max-w-7xl mx-auto flex justify-between items-center gap-3">
           <div className="flex items-center gap-2.5">
             <span className="text-lg sm:text-xl font-black">
-              JUNFI<span className="text-[#00b4d8]">X</span>
+              JUNFI<span className="text-brand">X</span>
             </span>
-            <span className="text-[11px] bg-[#00b4d8]/20 text-[#90e0ef] px-2 py-0.5 rounded font-bold">관리자</span>
+            <span className="text-[11px] bg-brand/20 text-sky-200 px-2 py-0.5 rounded font-bold">관리자</span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link href="/" target="_blank" className="text-xs text-slate-300 hover:text-white flex items-center gap-1">
@@ -125,7 +125,7 @@ export default function AdminDashboardPage() {
               key={t.key}
               onClick={() => selectTab(t.key)}
               className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition ${
-                tab === t.key ? 'bg-[#071739] text-white' : 'bg-white text-slate-600 hover:bg-slate-200'
+                tab === t.key ? 'bg-navy text-white' : 'bg-white text-slate-600 hover:bg-slate-200'
               }`}
             >
               <t.icon className="w-4 h-4" />

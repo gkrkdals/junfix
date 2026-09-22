@@ -134,7 +134,7 @@ export default function CasesTab({ cases, services, reload, toast }: Props) {
                   </div>
                   <div className="p-4 flex-1 flex flex-col">
                     <div className="flex justify-between text-[11px] mb-1.5">
-                      <span className="font-bold text-[#0077b6]">{c.serviceCategory}</span>
+                      <span className="font-bold text-brand">{c.serviceCategory}</span>
                       <span className="text-slate-400">
                         {c.region} · {c.date}
                       </span>

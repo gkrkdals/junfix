@@ -20,10 +20,10 @@ function Step({ n, icon: Icon, title, children }: { n: number; icon: React.Eleme
   return (
     <div className="space-y-2.5">
       <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-        <span className="w-6 h-6 rounded-full bg-[#071739] text-white flex items-center justify-center text-xs font-black shrink-0">
+        <span className="w-6 h-6 rounded-full bg-navy text-white flex items-center justify-center text-xs font-black shrink-0">
           {n}
         </span>
-        <Icon className="w-5 h-5 text-[#0077b6] shrink-0" />
+        <Icon className="w-5 h-5 text-brand shrink-0" />
         {title}
       </h3>
       {children}
@@ -40,7 +40,7 @@ export default function ServiceDetailModal({ service, relatedCases, onClose, onC
       ariaLabel={service.title}
       header={
         <>
-          <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/10 text-[#90e0ef] text-xs font-bold mb-2">
+          <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/10 text-sky-200 text-xs font-bold mb-2">
             서비스 안내
           </span>
           <h2 className="text-xl sm:text-3xl font-black pr-10">{service.title}</h2>
@@ -63,7 +63,7 @@ export default function ServiceDetailModal({ service, relatedCases, onClose, onC
             <a
               href={telHref(s.phoneNumber)}
               data-track="call_click"
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0077b6] hover:bg-[#0096c7] text-white font-bold text-sm transition"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-brand hover:bg-brand-dark text-white font-bold text-sm transition"
             >
               <Phone className="w-4 h-4" /> 전화 상담
             </a>
@@ -129,7 +129,7 @@ export default function ServiceDetailModal({ service, relatedCases, onClose, onC
           <Step n={5} icon={Wrench} title="사용 장비">
             <div className="flex flex-wrap gap-2">
               {service.equipment.map((item, i) => (
-                <span key={i} className="px-3 py-1.5 rounded-lg bg-[#00b4d8]/10 text-[#0077b6] text-sm font-semibold border border-[#00b4d8]/30">
+                <span key={i} className="px-3 py-1.5 rounded-lg bg-brand/10 text-brand text-sm font-semibold border border-brand/30">
                   {item}
                 </span>
               ))}
@@ -146,7 +146,7 @@ export default function ServiceDetailModal({ service, relatedCases, onClose, onC
                   <button
                     key={c.id}
                     onClick={() => onOpenCase(c)}
-                    className="text-left rounded-xl border border-slate-200 overflow-hidden bg-white hover:border-[#00b4d8] transition"
+                    className="text-left rounded-xl border border-slate-200 overflow-hidden bg-white hover:border-brand transition"
                   >
                     {thumb && (
                       <div className="relative aspect-[4/3] bg-slate-100">
@@ -156,7 +156,7 @@ export default function ServiceDetailModal({ service, relatedCases, onClose, onC
                     <div className="p-3">
                       <div className="text-[11px] text-slate-500">{c.region}</div>
                       <div className="text-sm font-bold text-slate-900 line-clamp-2">{c.title}</div>
-                      <div className="mt-1 text-xs text-[#0077b6] font-semibold flex items-center gap-0.5">
+                      <div className="mt-1 text-xs text-brand font-semibold flex items-center gap-0.5">
                         자세히 보기 <ChevronRight className="w-3.5 h-3.5" />
                       </div>
                     </div>

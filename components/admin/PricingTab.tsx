@@ -123,7 +123,7 @@ export default function PricingTab({ pricing, reload, toast }: Props) {
                       value={row.priceDisplay}
                       onChange={(e) => update(row.id, { priceDisplay: e.target.value })}
                       placeholder={category === 'fixed' ? '50,000원~' : '현장 견적'}
-                      className={`${inputClass} ${category === 'fixed' ? 'text-red-600 font-bold' : 'text-[#0077b6] font-bold'}`}
+                      className={`${inputClass} ${category === 'fixed' ? 'text-red-600 font-bold' : 'text-brand font-bold'}`}
                     />
                   </div>
                   <div className="col-span-6 sm:col-span-5">

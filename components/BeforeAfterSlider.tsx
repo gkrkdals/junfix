@@ -36,7 +36,7 @@ export default function BeforeAfterSlider({
     <div className="w-full">
       {(title || subtitle) && (
         <div className="mb-3">
-          <span className="text-xs font-bold text-[#0077b6] bg-[#00b4d8]/10 px-2.5 py-1 rounded-md">작업 전·후 비교</span>
+          <span className="text-xs font-bold text-brand bg-brand/10 px-2.5 py-1 rounded-md">작업 전·후 비교</span>
           {title && <h3 className="text-base sm:text-lg font-bold text-slate-900 mt-2">{title}</h3>}
           {subtitle && <p className="text-xs sm:text-sm text-slate-500">{subtitle}</p>}
         </div>
@@ -61,7 +61,7 @@ export default function BeforeAfterSlider({
       >
         <div className="absolute inset-0">
           <Image src={afterImage} alt={afterLabel} fill className="object-cover" sizes="(max-width: 896px) 100vw, 896px" />
-          <span className="absolute bottom-3 right-3 bg-[#0077b6]/90 text-white text-xs font-bold px-2.5 py-1 rounded-lg">{afterLabel}</span>
+          <span className="absolute bottom-3 right-3 bg-brand/90 text-white text-xs font-bold px-2.5 py-1 rounded-lg">{afterLabel}</span>
         </div>
 
         <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}>
@@ -70,7 +70,7 @@ export default function BeforeAfterSlider({
         </div>
 
         <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow" style={{ left: `${position}%` }}>
-          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-white shadow-lg flex items-center justify-center text-[#071739] text-sm font-black border border-slate-300">
+          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-white shadow-lg flex items-center justify-center text-navy text-sm font-black border border-slate-300">
             ↔
           </div>
         </div>

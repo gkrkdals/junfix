@@ -30,7 +30,7 @@ export async function api<T = unknown>(method: string, url: string, body?: unkno
 }
 
 export const inputClass =
-  'w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#00b4d8] disabled:bg-slate-100';
+  'w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand disabled:bg-slate-100';
 
 export function Field({
   label,
@@ -58,7 +58,7 @@ export function Button({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'danger' | 'ghost' }) {
   const styles: Record<string, string> = {
-    primary: 'bg-[#0077b6] hover:bg-[#0096c7] text-white',
+    primary: 'bg-brand hover:bg-brand-dark text-white',
     secondary: 'bg-slate-800 hover:bg-slate-900 text-white',
     danger: 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200',
     ghost: 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300',
@@ -97,7 +97,7 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`relative w-9 h-5 rounded-full transition ${checked ? 'bg-[#0077b6]' : 'bg-slate-300'}`}
+        className={`relative w-9 h-5 rounded-full transition ${checked ? 'bg-brand' : 'bg-slate-300'}`}
       >
         <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition ${checked ? 'left-[18px]' : 'left-0.5'}`} />
       </span>
