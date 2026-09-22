@@ -20,19 +20,19 @@ export default function Hero() {
       <div className="pointer-events-none absolute -top-24 -right-24 w-80 h-80 rounded-full bg-sky-200/60 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-32 -left-20 w-72 h-72 rounded-full bg-sky-200/40 blur-3xl" />
 
-      <div className="container-x relative py-10 sm:py-16 lg:py-20">
+      <div className="container-x relative py-6 sm:py-16 lg:py-20">
         <div className={`grid grid-cols-1 gap-8 items-center ${hasImage ? 'lg:grid-cols-12' : ''}`}>
-          <div className={`space-y-5 sm:space-y-6 ${hasImage ? 'lg:col-span-7' : 'max-w-2xl'}`}>
+          <div className={`space-y-3.5 sm:space-y-6 ${hasImage ? 'lg:col-span-7' : 'max-w-2xl'}`}>
             <div>
-              <BrandLogo className="h-9 sm:h-12" />
-              <div className="mt-1 text-[10px] sm:text-[11px] tracking-[0.25em] font-semibold text-muted">TOTAL HOME SERVICE</div>
+              <BrandLogo className="h-8 sm:h-12" />
+              <div className="mt-0.5 text-[10px] sm:text-[11px] tracking-[0.25em] font-semibold text-muted">TOTAL HOME SERVICE</div>
             </div>
 
             <span className="inline-block px-3.5 py-1.5 rounded-full bg-navy text-white text-xs sm:text-sm font-bold">
               젊은 기술, 정직한 <span className="text-brand-light">서비스</span>
             </span>
 
-            <h1 className="text-[26px] sm:text-[40px] lg:text-[44px] font-black leading-[1.2] text-navy">
+            <h1 className="text-[25px] sm:text-[40px] lg:text-[44px] font-black leading-[1.2] text-navy">
               {s.tagline}
               <br />
               <span className="text-brand">준픽스 종합설비</span>
@@ -42,7 +42,7 @@ export default function Hero() {
               작은 문제도 <span className="text-brand font-bold">끝까지 책임집니다.</span>
             </p>
 
-            <ul className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-w-lg">
+            <ul className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 max-w-lg">
               {HIGHLIGHTS.map((item) => (
                 <li key={item} className="chip">
                   <CheckCircle2 className="w-4 h-4 text-brand shrink-0" />
@@ -51,13 +51,13 @@ export default function Hero() {
               ))}
             </ul>
 
-            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
-              <a href={telHref(s.phoneNumber)} data-track="call_click" className="btn-primary px-6 py-3.5 text-base sm:text-lg">
+            <div className="flex flex-col sm:flex-row gap-2 pt-0.5">
+              <a href={telHref(s.phoneNumber)} data-track="call_click" className="btn-primary px-6 py-3 sm:py-3.5 text-base sm:text-lg">
                 <Phone className="w-5 h-5" />
                 {s.phoneNumber}
               </a>
               {s.kakaoTalkUrl && (
-                <a href={s.kakaoTalkUrl} target="_blank" rel="noopener noreferrer" data-track="kakao_click" className="btn-kakao px-6 py-3.5 text-base">
+                <a href={s.kakaoTalkUrl} target="_blank" rel="noopener noreferrer" data-track="kakao_click" className="btn-kakao px-6 py-3 sm:py-3.5 text-base">
                   <MessageCircle className="w-5 h-5" />
                   카카오톡 상담
                 </a>
@@ -77,7 +77,7 @@ export default function Hero() {
 
       {/* 하단 정보 띠 */}
       <div className="bg-navy text-white">
-        <div className="container-x py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8 text-sm">
+        <div className="container-x py-2.5 flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-8 text-sm">
           <span className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-brand-light" />
             {s.businessHours}
