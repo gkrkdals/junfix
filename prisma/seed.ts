@@ -69,6 +69,7 @@ function serviceData(s: any) {
 
 const SEED_KEY = 'initial-data-v1';
 const CLEANUP_KEY = 'content-cleanup-v2';
+const CHANNELS_KEY = 'restore-channels-v3';
 
 /** 데이터 적재를 이미 했는지 판단한다. */
 async function alreadySeeded(): Promise<boolean> {
@@ -126,8 +127,6 @@ async function cleanupLegacyContent(src: any | null) {
   if (settings) {
     const patch: Record<string, string> = {};
     if (settings.businessNumber === '123-45-67890') patch.businessNumber = '';
-    if (settings.kakaoTalkUrl === 'https://open.kakao.com/me/junfix') patch.kakaoTalkUrl = '';
-    if (settings.naverBlogUrl === 'https://blog.naver.com/junfix_official') patch.naverBlogUrl = '';
     if (settings.address === '경기 및 수도권 전지역 긴급출동 대기') patch.address = '';
     if (settings.tagline.includes('젊은 기술')) patch.tagline = '막힘은 해결하고, 일상은 흐르게';
     if (!settings.serviceAreaList && src?.settings?.serviceAreaList) {
@@ -162,6 +161,26 @@ async function cleanupLegacyContent(src: any | null) {
   );
 }
 
+/**
+ * v2 정리 단계가 카카오톡/블로그 주소를 비워버린 것을 되돌린다 (1회).
+ * 주소가 비어 있을 때만 시드 원본 값으로 채우므로 관리자가 직접 넣은 값은 건드리지 않는다.
+ */
+async function restoreChannels(src: any | null) {
+  if (await prisma.seedState.findUnique({ where: { key: CHANNELS_KEY } })) return;
+
+  const settings = await prisma.siteSetting.findFirst({ orderBy: { id: 'asc' } });
+  if (settings) {
+    const patch: Record<string, string> = {};
+    if (!settings.kakaoTalkUrl && src?.settings?.kakaoTalkUrl) patch.kakaoTalkUrl = src.settings.kakaoTalkUrl;
+    if (!settings.naverBlogUrl && src?.settings?.naverBlogUrl) patch.naverBlogUrl = src.settings.naverBlogUrl;
+    if (Object.keys(patch).length) {
+      await prisma.siteSetting.update({ where: { id: settings.id }, data: patch });
+      console.log(`🔗 연결 채널 복구: ${Object.keys(patch).join(', ')}`);
+    }
+  }
+  await prisma.seedState.create({ data: { key: CHANNELS_KEY } });
+}
+
 async function main() {
   /* 0. 관리자 계정 비밀번호 동기화 (매 배포마다) ------------------------- */
   const passwordHash = hashPassword(ADMIN_PASSWORD);
@@ -177,6 +196,7 @@ async function main() {
   if (await alreadySeeded()) {
     console.log('✔ 초기 데이터는 이미 적재되어 있습니다. 건너뜁니다.');
     await cleanupLegacyContent(src);
+    await restoreChannels(src);
     return;
   }
 
@@ -257,6 +277,7 @@ async function main() {
 
   await prisma.seedState.create({ data: { key: SEED_KEY } });
   await prisma.seedState.create({ data: { key: CLEANUP_KEY } });
+  await prisma.seedState.create({ data: { key: CHANNELS_KEY } });
   console.log('🎉 초기 데이터 적재 완료 (다음 배포부터는 건너뜁니다)');
 }
 
