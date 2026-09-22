@@ -20,7 +20,7 @@ export function BrandLogo({ variant = 'navy', className = 'h-7 sm:h-8' }: { vari
   const s = useSiteSettings();
   const src = s.logoImageUrl || (variant === 'white' ? '/images/junfix_logo_white.png' : '/images/junfix_logo.png');
   return (
-    <span className={`relative block ${className} aspect-[1071/226]`}>
+    <span className={`relative block ${className} aspect-[919/162]`}>
       <Image src={src} alt={s.siteName} fill className="object-contain object-left" priority sizes="200px" />
     </span>
   );

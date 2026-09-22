@@ -71,7 +71,7 @@ export default function CaseStudiesSection({ cases, services, photos = [] }: Pro
         ) : (
           <>
             {categories.length > 2 && (
-              <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+              <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-5 px-5 sm:mx-0 sm:px-0">
                 {categories.map((cat) => (
                   <button
                     key={cat}
@@ -149,7 +149,7 @@ export default function CaseStudiesSection({ cases, services, photos = [] }: Pro
         {photos.length > 0 && (
           <div className="mt-8">
             <h3 className="card-title mb-3">작업차량 · 장비 · 현장</h3>
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x">
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-5 px-5 sm:mx-0 sm:px-0 snap-x">
               {photos.map((photo) => (
                 <figure key={photo.id} className="shrink-0 w-56 sm:w-64 snap-start">
                   <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-200 border border-slate-200">
