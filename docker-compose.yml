@@ -98,6 +98,21 @@ services:
       PORT: "3000"
       # 관리자 세션 쿠키 서명키. 바뀌면 기존 로그인 세션이 모두 무효화된다.
       ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:?set ADMIN_SESSION_SECRET in .env}
+      # 사이트맵/OG/robots 에 쓰이는 공개 주소
+      SITE_URL: ${SITE_URL:-https://${DOMAIN}}
+      # 업로드 사진 저장 위치 (아래 uploads_data 볼륨)
+      UPLOAD_DIR: /app/uploads
+      # 상담 접수 이메일 알림 (비워두면 알림 없이 접수만 저장)
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-0}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      NOTIFY_EMAIL: ${NOTIFY_EMAIL:-}
+    volumes:
+      # 관리자가 올린 사진. 재배포해도 유지된다. 백업은 DEPLOY.md 참고.
+      - uploads_data:/app/uploads
     expose:
       - "3000"
     depends_on:
@@ -141,6 +156,7 @@ services:
 
 volumes:
   mariadb_data:
+  uploads_data:
   certbot_conf:
   certbot_www:
 

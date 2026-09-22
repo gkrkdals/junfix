@@ -55,6 +55,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Prisma 쿼리 엔진(.so.node)은 Next 의 트레이싱에서 누락될 수 있어 명시적으로 넣는다.
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 
+# 업로드 사진 저장 위치. compose 가 named volume 을 여기에 마운트한다.
+# 볼륨이 처음 만들어질 때 이 디렉터리의 소유권(nextjs)을 물려받는다.
+ENV UPLOAD_DIR=/app/uploads
+RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
+
 USER nextjs
 EXPOSE 3000
 

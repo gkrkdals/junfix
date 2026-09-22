@@ -91,6 +91,15 @@ server {
         add_header Strict-Transport-Security "max-age=15552000" always;
     }
 
+    # 관리자가 올린 사진 (파일명이 랜덤이라 내용이 바뀌지 않는다)
+    location /uploads/ {
+        include /etc/nginx/snippets/proxy_headers.inc;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_pass http://next_upstream;
+        add_header Strict-Transport-Security "max-age=15552000" always;
+    }
+
     location / {
         include /etc/nginx/snippets/proxy_headers.inc;
         proxy_http_version 1.1;

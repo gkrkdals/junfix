@@ -28,3 +28,5 @@ Thumbs.db
 
 # 타입체크 캐시
 *.tsbuildinfo
+uploads/
+.claude/launch.json

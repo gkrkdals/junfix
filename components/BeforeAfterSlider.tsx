@@ -9,103 +9,73 @@ interface Props {
   beforeLabel?: string;
   afterLabel?: string;
   title?: string;
+  subtitle?: string;
 }
 
 export default function BeforeAfterSlider({
   beforeImage,
   afterImage,
-  beforeLabel = '작업 전 (Before)',
-  afterLabel = '작업 후 (After)',
-  title = '기름 슬러지로 꽉 막힌 배관 ➜ 고압세척 후 신축 배관처럼 복원',
+  beforeLabel = '작업 전',
+  afterLabel = '작업 후',
+  title,
+  subtitle,
 }: Props) {
-  const [sliderPosition, setSliderPosition] = useState(50);
+  const [position, setPosition] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
+  const dragging = useRef(false);
 
-  const handleMove = useCallback((clientX: number) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = clientX - rect.left;
-    let percentage = (x / rect.width) * 100;
-    if (percentage < 0) percentage = 0;
-    if (percentage > 100) percentage = 100;
-    setSliderPosition(percentage);
+  const moveTo = useCallback((clientX: number) => {
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const pct = ((clientX - rect.left) / rect.width) * 100;
+    setPosition(Math.min(100, Math.max(0, pct)));
   }, []);
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging.current) return;
-    handleMove(e.touches[0].clientX);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging.current) return;
-    handleMove(e.clientX);
-  };
 
   return (
     <div className="w-full">
-      {title && (
-        <div className="mb-3 text-center sm:text-left">
-          <span className="text-xs font-bold text-[#0077b6] bg-[#00b4d8]/10 px-2.5 py-1 rounded-md">
-            Before & After 비교
-          </span>
-          <h4 className="text-base sm:text-lg font-bold text-slate-800 mt-1">{title}</h4>
+      {(title || subtitle) && (
+        <div className="mb-3">
+          <span className="text-xs font-bold text-[#0077b6] bg-[#00b4d8]/10 px-2.5 py-1 rounded-md">작업 전·후 비교</span>
+          {title && <h3 className="text-base sm:text-lg font-bold text-slate-900 mt-2">{title}</h3>}
+          {subtitle && <p className="text-xs sm:text-sm text-slate-500">{subtitle}</p>}
         </div>
       )}
 
       <div
         ref={containerRef}
-        onMouseDown={() => (isDragging.current = true)}
-        onMouseUp={() => (isDragging.current = false)}
-        onMouseLeave={() => (isDragging.current = false)}
-        onMouseMove={handleMouseMove}
-        onTouchStart={() => (isDragging.current = true)}
-        onTouchEnd={() => (isDragging.current = false)}
-        onTouchMove={handleTouchMove}
-        className="relative w-full aspect-[4/3] sm:aspect-[16/10] overflow-hidden rounded-2xl cursor-ew-resize select-none border-2 border-slate-200 shadow-lg bg-slate-900"
+        onMouseDown={(e) => {
+          dragging.current = true;
+          moveTo(e.clientX);
+        }}
+        onMouseUp={() => (dragging.current = false)}
+        onMouseLeave={() => (dragging.current = false)}
+        onMouseMove={(e) => dragging.current && moveTo(e.clientX)}
+        onTouchStart={(e) => {
+          dragging.current = true;
+          moveTo(e.touches[0].clientX);
+        }}
+        onTouchEnd={() => (dragging.current = false)}
+        onTouchMove={(e) => dragging.current && moveTo(e.touches[0].clientX)}
+        className="relative w-full aspect-[4/3] sm:aspect-[16/10] overflow-hidden rounded-2xl cursor-ew-resize select-none border border-slate-200 bg-slate-900 touch-pan-y"
       >
-        {/* After Image (Background) */}
-        <div className="absolute inset-0 w-full h-full">
-          <Image
-            src={afterImage}
-            alt="시공 후 사진"
-            fill
-            className="object-cover"
-          />
-          <div className="absolute bottom-4 right-4 bg-emerald-600/90 text-white text-xs font-black px-3 py-1.5 rounded-lg shadow backdrop-blur-sm">
-            {afterLabel}
-          </div>
+        <div className="absolute inset-0">
+          <Image src={afterImage} alt={afterLabel} fill className="object-cover" sizes="(max-width: 896px) 100vw, 896px" />
+          <span className="absolute bottom-3 right-3 bg-[#0077b6]/90 text-white text-xs font-bold px-2.5 py-1 rounded-lg">{afterLabel}</span>
         </div>
 
-        {/* Before Image (Clipped Overlay) */}
-        <div
-          className="absolute inset-0 w-full h-full overflow-hidden"
-          style={{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }}
-        >
-          <Image
-            src={beforeImage}
-            alt="시공 전 사진"
-            fill
-            className="object-cover"
-          />
-          <div className="absolute bottom-4 left-4 bg-red-600/90 text-white text-xs font-black px-3 py-1.5 rounded-lg shadow backdrop-blur-sm">
-            {beforeLabel}
-          </div>
+        <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}>
+          <Image src={beforeImage} alt={beforeLabel} fill className="object-cover" sizes="(max-width: 896px) 100vw, 896px" />
+          <span className="absolute bottom-3 left-3 bg-slate-900/85 text-white text-xs font-bold px-2.5 py-1 rounded-lg">{beforeLabel}</span>
         </div>
 
-        {/* Slider Divider Line */}
-        <div
-          className="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_10px_rgba(0,0,0,0.5)] cursor-ew-resize flex items-center justify-center"
-          style={{ left: `${sliderPosition}%` }}
-        >
-          <div className="w-8 h-8 rounded-full bg-white shadow-xl flex items-center justify-center text-[#071739] text-xs font-black border border-slate-300">
+        <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow" style={{ left: `${position}%` }}>
+          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-white shadow-lg flex items-center justify-center text-[#071739] text-sm font-black border border-slate-300">
             ↔
           </div>
         </div>
       </div>
-      <p className="text-center text-xs text-slate-500 mt-2">
-        💡 가운데 동그라미를 좌우로 밀어서 작업 전·후를 실시간으로 비교해보세요.
-      </p>
+      <p className="text-center text-xs text-slate-500 mt-2">가운데 손잡이를 좌우로 움직여 작업 전·후를 비교해 보세요.</p>
     </div>
   );
 }

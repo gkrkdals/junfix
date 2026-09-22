@@ -27,7 +27,7 @@ certbot ─ 12시간마다 인증서 갱신 (nginx 는 6시간마다 reload)
 | --- | --- |
 | `Dockerfile` | 멀티스테이지 이미지 (deps → builder → **runner** / **migrator**), 비루트 실행 |
 | `docker-compose.yml` | nginx(80) → next-app(3000) → mariadb(3306) + 1회성 `migrate` |
-| `prisma/schema.prisma` | DB 스키마 (테이블 7개) |
+| `prisma/schema.prisma` | DB 스키마 (테이블 9개) |
 | `prisma/migrations/` | 마이그레이션 이력. **반드시 커밋한다** |
 | `prisma/seed.ts` | 최초 1회 초기 데이터 적재 |
 | `nginx/templates/` | 리버스 프록시 설정 템플릿 (기동 시 `${DOMAIN}` 치환) |
@@ -36,6 +36,9 @@ certbot ─ 12시간마다 인증서 갱신 (nginx 는 6시간마다 reload)
 | `scripts/deploy-remote.sh` | 서버에서 도는 배포 로직 (Actions 가 SSH 로 흘려보냄) |
 | `.github/workflows/deploy.yml` | CI/CD 파이프라인 |
 | `.env` | 서버/로컬에서 각각 직접 생성 (git 에 커밋되지 않음) |
+| `lib/uploads.ts` | 관리자가 올린 사진 저장 (`uploads_data` 볼륨, `/uploads/...` 로 서빙) |
+| `lib/notify.ts` | 상담 접수 이메일 알림 (SMTP 설정 시) |
+| `ADMIN_GUIDE.md` | 사장님용 관리자 페이지 사용 안내 |
 
 ---
 
@@ -61,7 +64,25 @@ dig +short www.도메인.com
 ### 1-1. 방화벽 열기
 
 Let's Encrypt 는 80 포트로 소유권을 확인한다. 갱신 때도 계속 필요하므로
-80 을 닫으면 안 된다.
+80 을 닫으면 안 된다. 443 은 실제 서비스용이다.
+
+배포판에 따라 방화벽 도구가 다르다. 먼저 무엇이 도는지 확인한다.
+
+```bash
+command -v firewall-cmd && sudo firewall-cmd --state    # RHEL / Rocky / Alma / CentOS
+command -v ufw          && sudo ufw status              # Ubuntu / Debian
+```
+
+**firewalld (RHEL 계열)**
+
+```bash
+sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --permanent --add-service=https
+sudo firewall-cmd --reload
+sudo firewall-cmd --list-all        # http, https 가 보여야 한다
+```
+
+**ufw (Ubuntu / Debian)**
 
 ```bash
 sudo ufw allow 22/tcp
@@ -71,7 +92,20 @@ sudo ufw enable
 sudo ufw status
 ```
 
-> 클라우드(AWS/GCP/네이버클라우드 등)라면 콘솔의 보안그룹에서도 동일하게 열어야 한다.
+> 클라우드(네이버클라우드 / AWS / GCP 등)라면 **콘솔의 보안그룹(ACG)에서도**
+> 인바운드 TCP 80, 443 을 따로 열어야 한다. 서버 방화벽만 열면 안 된다.
+
+### 열렸는지 밖에서 확인
+
+서버가 아니라 **본인 PC** 에서 확인해야 의미가 있다.
+
+```bash
+nc -z -w 5 <서버IP> 80  && echo "80 열림"
+nc -z -w 5 <서버IP> 443 && echo "443 열림"
+```
+
+한쪽만 열려 있으면 브라우저에서 `ERR_CONNECTION_REFUSED` 나 무한 로딩이 된다.
+특히 80 만 열린 경우, HTTP 로 접속하면 HTTPS 로 301 리다이렉트된 뒤 거기서 막힌다.
 
 ### 1-2. Docker 설치 확인
 
@@ -261,6 +295,37 @@ git push origin main
 Actions 탭에서 진행 상황을 볼 수 있다. 수동 재배포는
 **Actions → Deploy to production → Run workflow**.
 
+### 상담 접수 이메일 알림 켜기
+
+`.env` 에 SMTP 값을 넣고 재배포(`git push` 또는 Actions 의 Run workflow)한다.
+수신 주소는 관리자 페이지 > 기본 정보 > "알림 받을 이메일" 이 우선이고, 없으면 `NOTIFY_EMAIL` 을 쓴다.
+
+발신은 개발자 Gmail 계정, 수신은 사장님 네이버 메일(`wnsgur0197@naver.com`)로 운용한다.
+
+```bash
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=1
+SMTP_USER=발신용계정@gmail.com
+SMTP_PASS=16자리앱비밀번호
+SMTP_FROM="준픽스 홈페이지 <발신용계정@gmail.com>"
+NOTIFY_EMAIL=wnsgur0197@naver.com
+```
+
+Gmail 앱 비밀번호 발급: 구글 계정(myaccount.google.com) > 보안 > **2단계 인증을 켠 뒤** > 앱 비밀번호 > 이름 입력 > 생성.
+표시되는 16자리를 공백 없이 `SMTP_PASS` 에 넣는다. 일반 로그인 비밀번호로는 발송이 거부된다.
+Gmail 발신 한도는 하루 500통이라 상담 알림 용도로는 충분하다.
+
+네이버 계정으로 보내려면 `SMTP_HOST=smtp.naver.com` 으로 바꾸고, 네이버 메일 > 환경설정 > POP3/IMAP 설정을 "사용함"으로 켠다.
+설정이 없으면 `docker compose logs next-app` 에 `[notify] SMTP 설정이 없어 ...` 경고만 남고 접수는 정상 저장된다.
+
+테스트: 홈페이지 상담 폼을 제출한 뒤 메일이 오는지 확인한다.
+
+### 사이트 주소 (SITE_URL)
+
+사이트맵·OG·robots 에 쓰이는 공개 주소는 `SITE_URL` 환경변수(없으면 `https://${DOMAIN}`)이고,
+관리자 페이지 > 기본 정보 > "홈페이지 주소" 를 입력하면 그 값이 우선한다.
+
 ### 로그 확인
 
 ```bash
@@ -357,17 +422,20 @@ git push
 
 ## 4. 데이터 관리
 
-모든 데이터는 MariaDB 에 있고, `mariadb_data` 볼륨에 보존된다.
-컨테이너를 지웠다 다시 만들어도 이 볼륨이 남아 있으면 데이터는 유지된다.
+글·설정은 MariaDB(`mariadb_data` 볼륨)에, 관리자가 올린 **사진 파일은 `uploads_data` 볼륨**에 있다.
+컨테이너를 지웠다 다시 만들어도 두 볼륨이 남아 있으면 데이터는 유지된다.
+`docker compose down -v` 는 볼륨까지 지우므로 쓰지 않는다.
 
 | 테이블 | 내용 |
 | --- | --- |
 | `admin_users` | 관리자 계정 (scrypt 해시) |
 | `site_settings` | 사이트 기본 정보 (단일 행) |
-| `services` | 서비스 마스터 8건 |
-| `case_studies` | 시공사례 |
+| `services` | 서비스 안내 (관리자에서 추가/수정) |
+| `case_studies` | 시공사례 (사진 URL 은 `/uploads/...`) |
 | `pricing_items` | 작업비용 안내 |
 | `reviews` | 고객 후기 |
+| `site_photos` | 업체 사진 갤러리 |
+| `media_assets` | 업로드 파일 목록 (실제 파일은 `uploads_data` 볼륨) |
 | `inquiries` | **고객 상담/출동 접수 (개인정보)** |
 
 ### 스키마를 바꿀 때
@@ -406,6 +474,17 @@ docker compose exec -T mariadb sh -c \
   > "backups/junpiks_$(date +%F_%H%M).sql"
 ```
 
+사진 파일은 DB 덤프에 포함되지 않는다. 볼륨을 통째로 tar 로 묶는다.
+
+```bash
+cd /opt/junpiks
+docker run --rm -v junpiks_uploads_data:/data -v "$PWD/backups":/backup alpine \
+  tar czf "/backup/uploads_$(date +%F_%H%M).tar.gz" -C /data .
+```
+
+> 볼륨 이름은 `docker volume ls | grep uploads` 로 확인한다.
+> compose 프로젝트 이름(기본: 디렉터리명 `junpiks`)이 앞에 붙는다.
+
 ### 복원
 
 ```bash
@@ -414,6 +493,13 @@ docker compose exec -T mariadb sh -c \
   'exec mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" "$MARIADB_DATABASE"' \
   < backups/복원할파일.sql
 docker compose restart next-app
+```
+
+사진 볼륨 복원:
+
+```bash
+docker run --rm -v junpiks_uploads_data:/data -v "$PWD/backups":/backup alpine \
+  sh -c "cd /data && tar xzf /backup/uploads_복원할파일.tar.gz"
 ```
 
 ### 초기 데이터 적재 규칙
@@ -430,6 +516,10 @@ docker compose restart next-app
 초기 데이터 적재 여부는 `seed_state` 테이블의 마커로 판단한다.
 "테이블이 비어 있으면 채운다" 방식이 아니므로,
 **관리자가 UI 에서 후기나 시공사례를 전부 삭제해도 다음 배포 때 되살아나지 않는다.**
+
+마커 `content-cleanup-v2` 는 v1 시드로 이미 적재된 서버를 한 번 정리한다.
+예시용 가상 시공사례 5건·후기 4건·테스트 접수를 지우고, 자리표시 사업자번호·카톡·블로그 URL 을 비우며,
+서비스 문구를 새 원본으로 갱신하고 "배관공사 및 배관교체" 서비스를 추가한다. 이후 배포에서는 건너뛴다.
 
 관리자 비밀번호를 바꾸려면 `.env` 의 `ADMIN_PASSWORD` 를 고치고 재배포한다.
 (비밀번호 변경 UI 가 없어서 `.env` 가 유일한 변경 수단이다)
@@ -487,3 +577,11 @@ docker compose run --rm -e SEED_SOURCE=/app/data/다른파일.json migrate
 - 관리자 비밀번호 변경 UI 가 없다. `.env` 의 `ADMIN_PASSWORD` 를 바꾸고
   재배포하는 방식으로 운용한다.
 - 로그인 시도 횟수 제한(brute-force 방어)이 없다.
+  (상담 접수 `POST /api/inquiries` 에는 IP 당 분당 5건 제한이 있다)
+
+추가로 정리된 것:
+
+- 로그인 페이지에 기본 관리자 계정·비밀번호가 안내문으로 노출되던 것을 제거했다.
+- `GET /api/settings` 를 관리자 전용으로 바꿨다 (알림 이메일 등이 공개되지 않도록).
+- 업로드는 관리자만 가능하고, 파일 내용을 sharp 로 판별해 이미지가 아니면 거부한다.
+  저장 파일명은 랜덤이며 `/uploads/` 서빙 라우트는 업로드 폴더 밖 경로를 404 로 막는다.

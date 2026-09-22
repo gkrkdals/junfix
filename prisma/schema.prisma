@@ -27,19 +27,38 @@ model AdminUser {
 }
 
 // 2. 사이트 기본 설정 및 업체 정보 (단일 행으로 운용)
+//    전화번호/카톡/블로그/지역 등 화면에 노출되는 값은 전부 여기서 읽는다.
 model SiteSetting {
-  id                 Int      @id @default(autoincrement())
-  siteName           String   @default("준픽스 (JUNFIX)") @map("site_name") @db.VarChar(100)
-  tagline            String   @default("막힘은 해결하고, 일상은 흐르게 - 젊은 기술, 정직한 서비스") @db.VarChar(200)
-  representativeName String   @default("염준혁") @map("representative_name") @db.VarChar(50)
-  phoneNumber        String   @default("010-2703-1491") @map("phone_number") @db.VarChar(30)
-  telNumber          String   @default("010-2703-1491") @map("tel_number") @db.VarChar(30)
-  kakaoTalkUrl       String   @default("https://open.kakao.com/me/junfix") @map("kakao_talk_url") @db.VarChar(255)
-  naverBlogUrl       String   @default("https://blog.naver.com/junfix_official") @map("naver_blog_url") @db.VarChar(255)
-  serviceAreas       String   @default("경기·수도권 전지역 출장 가능 (평일·주말 24시간 상담)") @map("service_areas") @db.VarChar(255)
-  businessNumber     String   @default("123-45-67890") @map("business_number") @db.VarChar(50)
-  address            String   @default("경기 및 수도권 전지역 긴급출동 대기") @db.VarChar(200)
-  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+  id                 Int    @id @default(autoincrement())
+  siteName           String @default("준픽스 (JUNFIX)") @map("site_name") @db.VarChar(100)
+  tagline            String @default("막힘은 해결하고, 일상은 흐르게") @db.VarChar(200)
+  representativeName String @default("염준혁") @map("representative_name") @db.VarChar(50)
+  phoneNumber        String @default("010-2703-1491") @map("phone_number") @db.VarChar(30)
+  telNumber          String @default("010-2703-1491") @map("tel_number") @db.VarChar(30)
+  kakaoTalkUrl       String @default("") @map("kakao_talk_url") @db.VarChar(255)
+  naverBlogUrl       String @default("") @map("naver_blog_url") @db.VarChar(255)
+  businessNumber     String @default("") @map("business_number") @db.VarChar(50)
+  address            String @default("") @db.VarChar(200)
+
+  // --- 확장 필드 ---------------------------------------------------------
+  siteUrl                String @default("") @map("site_url") @db.VarChar(255)
+  email                  String @default("") @db.VarChar(100)
+  businessHours          String @default("평일·주말 24시간 상담 가능") @map("business_hours") @db.VarChar(100)
+  // 서비스 가능 지역 목록. 줄바꿈 구분 텍스트.
+  serviceAreaList        String @default("") @map("service_area_list") @db.Text
+  logoImageUrl           String @default("") @map("logo_image_url") @db.VarChar(512)
+  heroImageUrl           String @default("") @map("hero_image_url") @db.VarChar(512)
+  // 상담 접수 알림을 받을 이메일 (비어 있으면 NOTIFY_EMAIL 환경변수)
+  notifyEmail            String @default("") @map("notify_email") @db.VarChar(100)
+  // 전환 측정 / 검색엔진 등록
+  gaMeasurementId        String @default("") @map("ga_measurement_id") @db.VarChar(50)
+  gtmId                  String @default("") @map("gtm_id") @db.VarChar(50)
+  naverAnalyticsId       String @default("") @map("naver_analytics_id") @db.VarChar(50)
+  googleAdsSendTo        String @default("") @map("google_ads_send_to") @db.VarChar(100)
+  naverSiteVerification  String @default("") @map("naver_site_verification") @db.VarChar(100)
+  googleSiteVerification String @default("") @map("google_site_verification") @db.VarChar(100)
+
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("site_settings")
 }
@@ -57,6 +76,7 @@ model Service {
   inspectionMethod String      @map("inspection_method") @db.Text
   workProcess      String      @map("work_process") @db.Text // JSON 문자열 배열
   equipment        String      @db.Text // JSON 문자열 배열
+  imageUrl         String      @default("") @map("image_url") @db.VarChar(512)
   orderNum         Int         @default(0) @map("order_num")
   isActive         Boolean     @default(true) @map("is_active")
   caseStudies      CaseStudy[]
@@ -74,10 +94,15 @@ model CaseStudy {
   region          String   @db.VarChar(100)
   symptom         String   @db.VarChar(255)
   cause           String   @db.Text
+  // 작업 과정
+  workProcess     String   @default("") @map("work_process") @db.Text
+  // 해결 결과
   solution        String   @db.Text
   equipment       String   @db.VarChar(255)
-  beforeImageUrl  String   @map("before_image_url") @db.Text
-  afterImageUrl   String   @map("after_image_url") @db.Text
+  beforeImageUrl  String   @default("") @map("before_image_url") @db.VarChar(512)
+  afterImageUrl   String   @default("") @map("after_image_url") @db.VarChar(512)
+  // 작업 과정 사진 URL 목록 (JSON 문자열 배열)
+  processImages   String   @default("[]") @map("process_images") @db.Text
   naverBlogLink   String   @default("") @map("naver_blog_link") @db.VarChar(255)
   date            String   @db.VarChar(30)
   isFeatured      Boolean  @default(false) @map("is_featured")
@@ -136,6 +161,33 @@ model Inquiry {
 
   @@index([status, createdAt])
   @@map("inquiries")
+}
+
+/// 업체 사진 갤러리 (작업차량, 장비, 현장 사진). 소개 섹션에 노출.
+model SitePhoto {
+  id        Int      @id @default(autoincrement())
+  url       String   @db.VarChar(512)
+  caption   String   @default("") @db.VarChar(200)
+  sortOrder Int      @default(0) @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([isActive, sortOrder])
+  @@map("site_photos")
+}
+
+/// 업로드된 파일 목록. 실제 파일은 UPLOAD_DIR 에 있고 여기엔 메타데이터만 둔다.
+model MediaAsset {
+  id           Int      @id @default(autoincrement())
+  url          String   @unique @db.VarChar(512)
+  originalName String   @default("") @map("original_name") @db.VarChar(255)
+  mimeType     String   @default("") @map("mime_type") @db.VarChar(50)
+  width        Int      @default(0)
+  height       Int      @default(0)
+  size         Int      @default(0)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("media_assets")
 }
 
 /// 시드 적용 이력. 초기 데이터 적재를 딱 한 번만 수행하기 위한 마커.

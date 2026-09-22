@@ -15,6 +15,9 @@ html {
 }
 
 body {
+  /* 한글 단어가 중간에서 끊기지 않도록 */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   color: #1e293b;
   background-color: #f8fafc;
   font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
@@ -43,20 +46,4 @@ body {
 
 .gradient-cyan {
   background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
-}
-
-/* Pulse animation for emergency banner and call buttons */
-@keyframes call-pulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(0, 180, 216, 0.6);
-  }
-  50% {
-    transform: scale(1.03);
-    box-shadow: 0 0 0 10px rgba(0, 180, 216, 0);
-  }
-}
-
-.animate-call-pulse {
-  animation: call-pulse 2s infinite ease-in-out;
 }

@@ -95,19 +95,12 @@ export default function AdminLoginPage() {
               <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
             </div>
           </div>
-
-          <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl text-[11px] text-blue-900">
-            💡 기본 관리자 계정 정보: <br />
-            - 아이디 : <span className="font-bold">junpiks</span> <br />
-            - 비밀번호 : <span className="font-bold">junp1325@@</span>
-          </div>
-
           <button
             type="submit"
             disabled={loading}
             className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#00b4d8] to-[#0077b6] hover:brightness-110 text-white font-extrabold text-sm shadow-md transition flex items-center justify-center gap-2 mt-2"
           >
-            {loading ? '인증 확인 중...' : '관리자 로그인'}
+            {loading ? '확인 중...' : '로그인'}
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>

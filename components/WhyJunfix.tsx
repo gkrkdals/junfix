@@ -2,96 +2,104 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { ShieldCheck, Truck, Wrench, FileCheck, Award, ThumbsUp, CheckCircle2 } from 'lucide-react';
+import { Truck, FileCheck, Search, ClipboardCheck, Phone } from 'lucide-react';
+import type { SitePhoto } from '@/lib/types';
+import { useSiteSettings } from '@/components/SiteSettingsProvider';
+import { telHref } from '@/lib/contact';
 
-export default function WhyJunfix() {
+interface Props {
+  photos: SitePhoto[];
+}
+
+export default function WhyJunfix({ photos }: Props) {
+  const s = useSiteSettings();
+
   const strengths = [
     {
-      icon: <Truck className="w-8 h-8 text-[#00b4d8]" />,
-      title: '100% 직영 출동 (하도급 없음)',
-      desc: '중개 수수료나 외주 하도급 없이 대표 엔지니어가 직접 출동하여 정직하고 책임감 있게 작업합니다.',
+      icon: Truck,
+      title: '직접 출동해서 작업합니다',
+      desc: '중개 없이 준픽스 기사가 직접 방문합니다. 상담부터 작업, 사후 안내까지 같은 사람이 맡습니다.',
     },
     {
-      icon: <Wrench className="w-8 h-8 text-[#00b4d8]" />,
-      title: '수천만 원 상당 최첨단 장비 완비',
-      desc: 'FHD 배관 내시경, 리지드 K9 플렉스샤프트, 300bar 초고압 세척기, 디지털 누수탐지기로 배관을 파괴하지 않고 안전하게 해결합니다.',
+      icon: FileCheck,
+      title: '작업 전 비용을 먼저 안내합니다',
+      desc: '현장 확인 후 원인과 예상 비용을 설명드리고, 동의하신 뒤에 작업을 시작합니다.',
     },
     {
-      icon: <FileCheck className="w-8 h-8 text-[#00b4d8]" />,
-      title: '작업 전 비용 고지 & 사전 동의',
-      desc: '현장 확인 후 정확한 원인과 작업 비용을 사전에 명확히 안내해 드리며, 고객 동의 없이 임의로 작업을 시작하지 않습니다.',
+      icon: Search,
+      title: '장비로 원인을 확인합니다',
+      desc: '배관 내시경, 고압세척기, 누수탐지기 등 작업에 맞는 장비로 원인을 확인하고 해결합니다.',
     },
     {
-      icon: <ShieldCheck className="w-8 h-8 text-[#00b4d8]" />,
-      title: '못 뚫으면 비용 0원 & A/S 보장',
-      desc: '기술에 대한 자신감으로 해결하지 못하면 비용을 받지 않으며, 동일 부위 재발 시 철저한 사후관리를 약속드립니다.',
+      icon: ClipboardCheck,
+      title: '작업 후 정리와 사후 안내',
+      desc: '작업 부위를 정리하고 결과를 확인해 드립니다. 같은 부위에 문제가 다시 생기면 연락 주세요.',
     },
   ];
 
   return (
-    <section id="about" className="py-16 sm:py-24 bg-slate-50 border-y border-slate-200">
+    <section id="about" className="py-14 sm:py-20 bg-slate-50 border-y border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-[#0077b6] text-xs sm:text-sm font-black tracking-wider uppercase">
-            WHY JUNFIX
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mt-2">
-            왜 배관·설비는 준픽스(JUNFIX)여야 할까요?
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+          <span className="text-[#0077b6] text-xs sm:text-sm font-bold">준픽스 소개</span>
+          <h2 className="text-2xl sm:text-4xl font-black text-slate-900 mt-2">
+            현장에서 직접 작업하는 설비업체입니다
           </h2>
           <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed">
-            광고만 그럴듯한 단순 출장 중개 플랫폼이 아닙니다.
-            현장에서 직접 땀 흘리며 수많은 배관을 뚫어낸 진짜 기술자가 직접 찾아갑니다.
+            {s.siteName}는 하수구·배관·누수 작업을 현장에서 직접 하고 있습니다.
+            작은 불편도 그냥 지나치지 않고 원인부터 확인합니다.
           </p>
         </div>
 
-        {/* 4 Core Strengths Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {strengths.map((item, index) => (
-            <div
-              key={index}
-              className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition duration-300 flex flex-col justify-between"
-            >
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-[#00b4d8]/10 flex items-center justify-center mb-6">
-                  {item.icon}
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2 leading-snug">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  {item.desc}
-                </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {strengths.map((item) => (
+            <div key={item.title} className="bg-white p-6 rounded-2xl border border-slate-200">
+              <div className="w-12 h-12 rounded-xl bg-[#00b4d8]/10 flex items-center justify-center mb-4">
+                <item.icon className="w-6 h-6 text-[#0077b6]" />
               </div>
-              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-1.5 text-xs text-[#0077b6] font-semibold">
-                <CheckCircle2 className="w-4 h-4 text-[#00b4d8]" /> 준픽스 안심 약속
-              </div>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-2 leading-snug">{item.title}</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>
 
-        {/* Brand Banner Card using User's Image Asset */}
-        <div className="bg-gradient-to-r from-[#071739] to-[#0a2558] rounded-3xl p-6 sm:p-10 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="space-y-3 text-center md:text-left">
-            <div className="inline-block px-3 py-1 rounded-full bg-[#00b4d8]/20 border border-[#00b4d8]/40 text-[#90e0ef] text-xs font-bold">
-              책임 시공제 운영
+        {photos.length > 0 && (
+          <div className="mt-12">
+            <div className="flex items-end justify-between mb-4">
+              <div>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900">작업차량 · 장비 · 현장</h3>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1">실제 사용하는 차량과 장비, 작업 현장 사진입니다.</p>
+              </div>
             </div>
-            <h3 className="text-2xl sm:text-3xl font-black">
-              &quot;작은 문제도 그냥 넘기지 않고, 끝까지 책임집니다.&quot;
-            </h3>
+            <div className="flex gap-3 overflow-x-auto pb-3 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x">
+              {photos.map((photo) => (
+                <figure key={photo.id} className="shrink-0 w-64 sm:w-72 snap-start">
+                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-200 border border-slate-200">
+                    <Image src={photo.url} alt={photo.caption || '준픽스 현장 사진'} fill className="object-cover" sizes="288px" />
+                  </div>
+                  {photo.caption && (
+                    <figcaption className="mt-2 text-xs sm:text-sm text-slate-600 px-1">{photo.caption}</figcaption>
+                  )}
+                </figure>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-12 bg-[#071739] rounded-3xl p-6 sm:p-10 text-white flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-2 text-center md:text-left">
+            <h3 className="text-xl sm:text-2xl font-black">작은 불편도 그냥 지나치지 않습니다</h3>
             <p className="text-slate-300 text-sm sm:text-base max-w-xl">
-              타 업체가 해결하지 못하고 돌아선 고난이도 배관 막힘, 낡은 주택의 누수 문제도
-              준픽스의 젊은 열정과 전문 기술력으로 시원하게 뚫어드립니다.
+              증상만 말씀해 주시면 예상 원인과 비용을 안내해 드립니다. 방문이 필요하면 일정을 잡아 직접 찾아갑니다.
             </p>
           </div>
-          <div className="shrink-0 flex flex-col sm:flex-row gap-3">
-            <a
-              href="tel:010-2703-1491"
-              data-track="call-click"
-              className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#00b4d8] to-[#0077b6] hover:brightness-110 text-white font-extrabold text-center shadow-lg transition"
-            >
-              직영 기사 바로 전화하기
-            </a>
-          </div>
+          <a
+            href={telHref(s.phoneNumber)}
+            data-track="call_click"
+            className="shrink-0 inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#00b4d8] hover:bg-[#48cae4] text-[#071739] font-extrabold transition"
+          >
+            <Phone className="w-5 h-5" /> {s.phoneNumber}
+          </a>
         </div>
       </div>
     </section>
