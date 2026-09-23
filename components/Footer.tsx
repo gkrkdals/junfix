@@ -56,6 +56,7 @@ export default function Footer() {
             <div className="space-y-1">
               <h5 className="text-white font-bold mb-1.5">출동 지역</h5>
               <p>{areas.join(' · ')}</p>
+              <p className="text-slate-400 pt-1">위 지역 외에도 경기·수도권 전 지역 출동합니다.</p>
             </div>
           )}
         </div>
