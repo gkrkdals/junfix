@@ -2,12 +2,10 @@
 
 import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
-import { MapPin, Calendar, ExternalLink, ImageOff, ChevronRight } from 'lucide-react';
+import { MapPin, ExternalLink, ImageOff } from 'lucide-react';
 import type { CaseStudy, ServiceItem, SitePhoto } from '@/lib/types';
-import BeforeAfterSlider from './BeforeAfterSlider';
 import CaseDetailModal from './CaseDetailModal';
 import SectionHeader from './SectionHeader';
-import { featuredCase } from '@/lib/cases';
 import { useSiteSettings } from '@/components/SiteSettingsProvider';
 
 interface Props {
@@ -33,7 +31,6 @@ export default function CaseStudiesSection({ cases, services, photos = [] }: Pro
 
   const filtered = filter === '전체' ? cases : cases.filter((c) => c.serviceCategory === filter);
   const visible = filtered.slice(0, limit);
-  const featured = featuredCase(cases);
 
   const blogButton = s.naverBlogUrl && (
     <a href={s.naverBlogUrl} target="_blank" rel="noopener noreferrer" data-track="blog_click" className="btn bg-[#03c75a] hover:bg-[#02b350] text-white px-4 py-2.5 text-sm">
@@ -45,22 +42,6 @@ export default function CaseStudiesSection({ cases, services, photos = [] }: Pro
     <section id="cases" className="section bg-white">
       <div className="container-x">
         <SectionHeader label="시공사례" title="실제 작업 사례" desc="현장에서 직접 찍은 작업 전·후 사진과 작업 내용입니다." action={blogButton || undefined} />
-
-        {featured && (
-          <div className="mb-6 sm:mb-8 card">
-            <BeforeAfterSlider
-              beforeImage={featured.beforeImageUrl}
-              afterImage={featured.afterImageUrl}
-              title={featured.title}
-              subtitle={[featured.serviceCategory, featured.region].filter(Boolean).join(' · ')}
-            />
-            <div className="mt-2 text-right">
-              <button onClick={() => setSelected(featured)} className="text-[13px] font-bold text-brand inline-flex items-center gap-0.5">
-                이 사례 자세히 보기 <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
 
         {cases.length === 0 ? (
           <div className="card text-center py-10 bg-slate-50">
@@ -87,49 +68,48 @@ export default function CaseStudiesSection({ cases, services, photos = [] }: Pro
               </div>
             )}
 
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
               {visible.map((item) => {
-                const hasPair = item.beforeImageUrl && item.afterImageUrl;
+                const hasPair = Boolean(item.beforeImageUrl && item.afterImageUrl);
                 const single = item.afterImageUrl || item.beforeImageUrl || item.processImages[0];
+                const caption = [item.region, item.serviceCategory].filter(Boolean).join(' / ');
                 return (
-                  <button key={item.id} onClick={() => setSelected(item)} className="card p-0 overflow-hidden text-left h-full flex flex-col hover:border-brand hover:shadow-md transition group">
+                  <button key={item.id} onClick={() => setSelected(item)} className="text-left group">
+                    <h3 className="card-title text-[18px] sm:text-[20px] mb-2.5 line-clamp-2 group-hover:text-brand transition">{item.title}</h3>
+
                     {hasPair ? (
-                      <div className="grid grid-cols-2 gap-px bg-slate-200">
-                        <div className="relative aspect-square bg-slate-100">
-                          <Image src={item.beforeImageUrl} alt={`${item.title} 작업 전`} fill className="object-cover" sizes="200px" />
-                          <span className="absolute top-2 left-2 bg-navy/85 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">전</span>
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                        <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
+                          <Image src={item.beforeImageUrl} alt={`${item.title} 작업 전`} fill className="object-cover" sizes="(max-width: 1024px) 50vw, 300px" />
+                          <span className="absolute top-2.5 left-2.5 bg-navy/85 text-white text-[12px] font-bold px-2.5 py-1 rounded-lg">작업 전</span>
                         </div>
-                        <div className="relative aspect-square bg-slate-100">
-                          <Image src={item.afterImageUrl} alt={`${item.title} 작업 후`} fill className="object-cover" sizes="200px" />
-                          <span className="absolute top-2 left-2 bg-brand/90 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">후</span>
+                        <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
+                          <Image src={item.afterImageUrl} alt={`${item.title} 작업 후`} fill className="object-cover" sizes="(max-width: 1024px) 50vw, 300px" />
+                          <span className="absolute top-2.5 left-2.5 bg-brand/90 text-white text-[12px] font-bold px-2.5 py-1 rounded-lg">작업 후</span>
                         </div>
                       </div>
                     ) : (
-                      <div className="relative aspect-[2/1] bg-slate-100">
+                      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
                         {single ? (
-                          <Image src={single} alt={item.title} fill className="object-cover" sizes="400px" />
+                          <>
+                            <Image src={single} alt={item.title} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 600px" />
+                            <span className="absolute top-2.5 left-2.5 bg-navy/85 text-white text-[12px] font-bold px-2.5 py-1 rounded-lg">
+                              {item.afterImageUrl ? '작업 후' : item.beforeImageUrl ? '작업 전' : '작업 과정'}
+                            </span>
+                          </>
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center text-slate-300">
-                            <ImageOff className="w-6 h-6" />
+                            <ImageOff className="w-8 h-8" />
                           </div>
                         )}
                       </div>
                     )}
-                    <div className="p-3 sm:p-4 flex flex-col flex-1">
-                      <span className="self-start text-[11px] font-bold px-2 py-0.5 rounded bg-sky-100 text-brand mb-1.5">{item.serviceCategory}</span>
-                      <h3 className="card-title line-clamp-2 min-h-[2.6em] group-hover:text-brand transition">{item.title}</h3>
-                      <div className="mt-auto pt-2 flex items-center gap-2 text-[12px] text-muted">
-                        {item.region && (
-                          <span className="flex items-center gap-0.5 truncate">
-                            <MapPin className="w-3 h-3 shrink-0" /> {item.region}
-                          </span>
-                        )}
-                        {item.date && (
-                          <span className="flex items-center gap-0.5 shrink-0">
-                            <Calendar className="w-3 h-3" /> {item.date}
-                          </span>
-                        )}
-                      </div>
+
+                    <div className="mt-2.5 flex items-center justify-between gap-3 text-[13px] sm:text-sm">
+                      <span className="flex items-center gap-1 text-navy font-semibold truncate">
+                        <MapPin className="w-4 h-4 text-brand shrink-0" /> {caption || item.title}
+                      </span>
+                      <span className="text-brand font-bold shrink-0">자세히 보기 ›</span>
                     </div>
                   </button>
                 );
