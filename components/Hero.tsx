@@ -8,21 +8,25 @@ import { telHref } from '@/lib/contact';
 import { BrandLogo } from '@/components/Navbar';
 
 const HIGHLIGHTS = ['하수구·싱크대 막힘', '변기 막힘·교체', '배관 고압세척', '누수탐지', '수전·세면대', '에어컨 설치'];
+const DEFAULT_CHARACTER = '/images/junfix_character.png';
 
-/** 네이버 블로그 시안 톤의 메인 배너: 밝은 배경, 로고 + 핵심 문구 + 주요 서비스 + 상담 연결 */
+/**
+ * 메인 배너. 배경 #E1EAF0, 캐릭터 이미지(관리자 업로드 > 기본 캐릭터).
+ * - PC: 오른쪽에 캐릭터가 하단 정보 띠 위에 서 있는 구도
+ * - 모바일: 문구·버튼 아래에 캐릭터를 두어 첫 화면에는 버튼까지 보이고, 스크롤하면 캐릭터가 띠 위에 서 있다
+ */
 export default function Hero() {
   const s = useSiteSettings();
-  const hasImage = Boolean(s.heroImageUrl);
+  const image = s.heroImageUrl || DEFAULT_CHARACTER;
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-white via-sky-100 to-white">
-      {/* 배경 장식: 연한 파란 원 */}
-      <div className="pointer-events-none absolute -top-24 -right-24 w-80 h-80 rounded-full bg-sky-200/60 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -left-20 w-72 h-72 rounded-full bg-sky-200/40 blur-3xl" />
+    <section className="relative overflow-hidden bg-[#E1EAF0]">
+      <div className="pointer-events-none absolute -top-24 -right-24 w-80 h-80 rounded-full bg-white/60 blur-3xl" />
 
-      <div className="container-x relative py-6 sm:py-16 lg:py-20">
-        <div className={`grid grid-cols-1 gap-8 items-center ${hasImage ? 'lg:grid-cols-12' : ''}`}>
-          <div className={`space-y-3.5 sm:space-y-6 ${hasImage ? 'lg:col-span-7' : 'max-w-2xl'}`}>
+      <div className="container-x relative">
+        <div className="grid grid-cols-1 lg:grid-cols-12 lg:items-end lg:gap-8">
+          {/* 문구 */}
+          <div className="lg:col-span-7 pt-6 sm:pt-12 lg:py-16 space-y-3.5 sm:space-y-6">
             <div>
               <BrandLogo className="h-8 sm:h-12" />
               <div className="mt-0.5 text-[10px] sm:text-[11px] tracking-[0.25em] font-semibold text-muted">TOTAL HOME SERVICE</div>
@@ -65,18 +69,17 @@ export default function Hero() {
             </div>
           </div>
 
-          {hasImage && (
-            <div className="lg:col-span-5">
-              <div className="relative aspect-[4/3] lg:aspect-square rounded-3xl overflow-hidden bg-white shadow-lg border border-white">
-                <Image src={s.heroImageUrl} alt={`${s.siteName} 대표 이미지`} fill className="object-cover" priority sizes="(max-width: 1024px) 100vw, 480px" />
-              </div>
+          {/* 캐릭터: 하단 정보 띠 위에 서 있도록 아래 여백 없이 붙인다 */}
+          <div className="lg:col-span-5 flex justify-center lg:justify-end mt-4 sm:mt-6 lg:mt-0">
+            <div className="relative w-[210px] h-[220px] sm:w-[300px] sm:h-[320px] lg:w-[400px] lg:h-[440px]">
+              <Image src={image} alt={`${s.siteName} 기술자`} fill className="object-contain object-bottom" priority sizes="(max-width: 640px) 210px, (max-width: 1024px) 300px, 400px" />
             </div>
-          )}
+          </div>
         </div>
       </div>
 
       {/* 하단 정보 띠 */}
-      <div className="bg-navy text-white">
+      <div className="relative bg-navy text-white">
         <div className="container-x py-2.5 flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-8 text-sm">
           <span className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-brand-light" />
