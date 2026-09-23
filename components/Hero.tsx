@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { Phone, MessageCircle, CheckCircle2, Clock } from 'lucide-react';
 import { useSiteSettings } from '@/components/SiteSettingsProvider';
 import { telHref } from '@/lib/contact';
-import { BrandLogo } from '@/components/Navbar';
 
 const HIGHLIGHTS = ['하수구·싱크대 막힘', '변기 막힘·교체', '배관 고압세척', '누수탐지', '수전·세면대', '에어컨 설치'];
 const DEFAULT_CHARACTER = '/images/junfix_character.png';
@@ -27,9 +26,9 @@ export default function Hero() {
         <div className="grid grid-cols-1 lg:grid-cols-12 lg:items-end lg:gap-8">
           {/* 문구 */}
           <div className="lg:col-span-7 pt-6 sm:pt-12 lg:py-16 space-y-3.5 sm:space-y-6">
-            <div>
-              <BrandLogo className="h-8 sm:h-12" />
-              <div className="mt-0.5 text-[10px] sm:text-[11px] tracking-[0.25em] font-semibold text-muted">TOTAL HOME SERVICE</div>
+            {/* 배너 전용 로고(워드마크 + 업종 + 준픽스). 관리자 로고를 올리면 그 이미지로 대체 */}
+            <div className={`relative w-[220px] sm:w-[300px] lg:w-[340px] ${s.logoImageUrl ? 'aspect-[919/162]' : 'aspect-[1393/720]'}`}>
+              <Image src={s.logoImageUrl || '/images/junfix_logo_full.png'} alt={s.siteName} fill className="object-contain object-left" priority sizes="340px" />
             </div>
 
             <span className="inline-block px-3.5 py-1.5 rounded-full bg-navy text-white text-xs sm:text-sm font-bold">
