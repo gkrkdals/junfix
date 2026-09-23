@@ -2,12 +2,22 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Phone, MessageCircle, CheckCircle2, Clock } from 'lucide-react';
+import { Phone, MessageCircle, Clock } from 'lucide-react';
 import { useSiteSettings } from '@/components/SiteSettingsProvider';
 import { telHref } from '@/lib/contact';
 
-const HIGHLIGHTS = ['하수구·싱크대 막힘', '변기 막힘·교체', '배관 고압세척', '누수탐지', '수전·세면대', '에어컨 설치'];
+const HIGHLIGHTS = ['하수구 막힘', '싱크대 막힘', '변기 막힘', '누수 · 배관', '에어컨'];
 const DEFAULT_CHARACTER = '/images/junfix_character.png';
+
+/** 파란 원 + 흰 체크. 테두리 없음 */
+function CheckIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="12" fill="#2F6BFF" />
+      <path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 /**
  * 메인 배너. 배경 #E1EAF0, 캐릭터 이미지(관리자 업로드 > 기본 캐릭터).
@@ -44,15 +54,16 @@ export default function Hero() {
               <span className="text-brand">준픽스 종합설비</span>
             </h1>
 
-            <p className="text-[15px] sm:text-lg text-ink font-medium">
-              작은 문제도 <span className="text-brand font-bold">끝까지 책임집니다.</span>
+            <p className="text-[17px] sm:text-xl text-ink font-semibold">
+              작은 문제도 <span className="text-brand font-bold">끝까지 책임집니다!</span>
             </p>
 
-            <ul className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 max-w-lg">
+            {/* 체크 목록: 배경 없이 글자와 체크 아이콘만 */}
+            <ul className="flex flex-wrap gap-x-5 gap-y-2 max-w-lg">
               {HIGHLIGHTS.map((item) => (
-                <li key={item} className="chip">
-                  <CheckCircle2 className="w-4 h-4 text-brand shrink-0" />
-                  <span className="truncate">{item}</span>
+                <li key={item} className="inline-flex items-center gap-1.5 text-[16px] sm:text-lg font-semibold text-navy">
+                  <CheckIcon className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+                  {item}
                 </li>
               ))}
             </ul>
