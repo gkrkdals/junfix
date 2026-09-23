@@ -27,13 +27,16 @@ export default function Hero() {
           {/* 문구 */}
           <div className="lg:col-span-7 pt-6 sm:pt-12 lg:py-16 space-y-3.5 sm:space-y-6">
             {/* 배너 전용 로고(워드마크 + 업종 + 준픽스). 관리자 로고를 올리면 그 이미지로 대체 */}
-            <div className={`relative w-[220px] sm:w-[300px] lg:w-[340px] ${s.logoImageUrl ? 'aspect-[919/162]' : 'aspect-[1393/720]'}`}>
-              <Image src={s.logoImageUrl || '/images/junfix_logo_full.png'} alt={s.siteName} fill className="object-contain object-left" priority sizes="340px" />
+            {/* 모바일에서는 로고와 슬로건을 가운데, PC 에서는 왼쪽 정렬 */}
+            <div className={`relative mx-auto lg:mx-0 w-[220px] sm:w-[300px] lg:w-[340px] ${s.logoImageUrl ? 'aspect-[919/162]' : 'aspect-[1393/720]'}`}>
+              <Image src={s.logoImageUrl || '/images/junfix_logo_full.png'} alt={s.siteName} fill className="object-contain object-center lg:object-left" priority sizes="340px" />
             </div>
 
-            <span className="inline-block px-3.5 py-1.5 rounded-full bg-navy text-white text-xs sm:text-sm font-bold">
-              젊은 기술, 정직한 <span className="text-brand-light">서비스</span>
-            </span>
+            <div className="text-center lg:text-left">
+              <span className="inline-block px-3.5 py-1.5 rounded-full bg-navy text-white text-xs sm:text-sm font-bold">
+                젊은 기술, 정직한 <span className="text-brand-light">서비스</span>
+              </span>
+            </div>
 
             <h1 className="text-[25px] sm:text-[40px] lg:text-[44px] font-black leading-[1.2] text-navy">
               {s.tagline}
