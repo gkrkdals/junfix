@@ -30,6 +30,8 @@ function emptyForm(services: ServiceItem[]): CaseForm {
     equipment: '',
     beforeImageUrl: '',
     afterImageUrl: '',
+    beforeImages: [],
+    afterImages: [],
     processImages: [],
     naverBlogLink: '',
     date: new Date().toISOString().split('T')[0],
@@ -220,7 +222,14 @@ export default function CasesTab({ cases, services, reload, toast }: Props) {
                 <textarea rows={2} value={form.cause} onChange={(e) => set('cause', e.target.value)} className={inputClass} placeholder="현장 확인 결과 원인" />
               </Field>
 
-              <ImageUploader label="작업 전 사진" value={form.beforeImageUrl} onChange={(url) => set('beforeImageUrl', url)} aspect="aspect-[16/9]" />
+              <ImageUploader
+                multiple
+                label="작업 전 사진 (여러 장 가능, 최대 6장)"
+                value={form.beforeImages}
+                onChange={(urls) => set('beforeImages', urls)}
+                max={6}
+                hint="작업 후 사진과 같은 순서로 올리면 홈페이지에서 같은 순서끼리 전·후 한 쌍으로 보입니다."
+              />
 
               <Field label="작업 과정">
                 <textarea rows={3} value={form.workProcess} onChange={(e) => set('workProcess', e.target.value)} className={inputClass} placeholder="어떤 순서로 어떻게 작업했는지" />
@@ -237,7 +246,7 @@ export default function CasesTab({ cases, services, reload, toast }: Props) {
                 <input value={form.equipment} onChange={(e) => set('equipment', e.target.value)} className={inputClass} placeholder="예: 배관 내시경, 고압세척기" />
               </Field>
 
-              <ImageUploader label="작업 후 사진" value={form.afterImageUrl} onChange={(url) => set('afterImageUrl', url)} aspect="aspect-[16/9]" />
+              <ImageUploader multiple label="작업 후 사진 (여러 장 가능, 최대 6장)" value={form.afterImages} onChange={(urls) => set('afterImages', urls)} max={6} />
 
               <Field label="해결 결과">
                 <textarea rows={2} value={form.solution} onChange={(e) => set('solution', e.target.value)} className={inputClass} placeholder="작업 후 상태, 고객 안내 내용" />

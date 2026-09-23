@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
-import { MapPin, ExternalLink, ImageOff } from 'lucide-react';
+import { MapPin, ExternalLink, ImageOff, Images } from 'lucide-react';
 import type { CaseStudy, ServiceItem, SitePhoto } from '@/lib/types';
 import CaseDetailModal from './CaseDetailModal';
 import SectionHeader from './SectionHeader';
@@ -73,6 +73,7 @@ export default function CaseStudiesSection({ cases, services, photos = [] }: Pro
                 const hasPair = Boolean(item.beforeImageUrl && item.afterImageUrl);
                 const single = item.afterImageUrl || item.beforeImageUrl || item.processImages[0];
                 const caption = [item.region, item.serviceCategory].filter(Boolean).join(' / ');
+                const extraPairs = Math.max(item.beforeImages.length, item.afterImages.length) - 1;
                 return (
                   <button key={item.id} onClick={() => setSelected(item)} className="text-left group">
                     <h3 className="card-title text-[18px] sm:text-[20px] mb-2.5 line-clamp-2 group-hover:text-brand transition">{item.title}</h3>
@@ -86,6 +87,11 @@ export default function CaseStudiesSection({ cases, services, photos = [] }: Pro
                         <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
                           <Image src={item.afterImageUrl} alt={`${item.title} 작업 후`} fill className="object-cover" sizes="(max-width: 1024px) 50vw, 300px" />
                           <span className="absolute top-2.5 left-2.5 bg-brand/90 text-white text-[12px] font-bold px-2.5 py-1 rounded-lg">작업 후</span>
+                          {extraPairs > 0 && (
+                            <span className="absolute bottom-2.5 right-2.5 bg-black/60 text-white text-[11px] font-bold px-2 py-1 rounded-lg inline-flex items-center gap-1">
+                              <Images className="w-3.5 h-3.5" /> +{extraPairs}
+                            </span>
+                          )}
                         </div>
                       </div>
                     ) : (

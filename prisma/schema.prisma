@@ -99,8 +99,12 @@ model CaseStudy {
   // 해결 결과
   solution        String   @db.Text
   equipment       String   @db.VarChar(255)
+  // 대표 작업 전/후 사진 (아래 목록의 첫 장과 같다. 목록 화면용)
   beforeImageUrl  String   @default("") @map("before_image_url") @db.VarChar(512)
   afterImageUrl   String   @default("") @map("after_image_url") @db.VarChar(512)
+  // 작업 전/후 사진 목록 (JSON 문자열 배열). 같은 순서끼리 한 쌍으로 보여준다.
+  beforeImages    String   @default("[]") @map("before_images") @db.Text
+  afterImages     String   @default("[]") @map("after_images") @db.Text
   // 작업 과정 사진 URL 목록 (JSON 문자열 배열)
   processImages   String   @default("[]") @map("process_images") @db.Text
   naverBlogLink   String   @default("") @map("naver_blog_link") @db.VarChar(255)

@@ -6,6 +6,7 @@ import { MapPin, Calendar, AlertCircle, Wrench, CheckCircle2, Cog, ExternalLink,
 import type { CaseStudy } from '@/lib/types';
 import ModalShell from '@/components/ModalShell';
 import { useSiteSettings } from '@/components/SiteSettingsProvider';
+import { beforeAfterPairs } from '@/lib/cases';
 import { telHref } from '@/lib/contact';
 
 interface Props {
@@ -18,7 +19,7 @@ function Photo({ src, alt, label }: { src: string; alt: string; label: string })
     <figure>
       <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
         <Image src={src} alt={alt} fill className="object-cover" sizes="(max-width: 640px) 100vw, 400px" />
-        <span className="absolute top-3 left-3 bg-slate-900/80 text-white text-xs font-bold px-2.5 py-1 rounded-lg">
+        <span className={`absolute top-3 left-3 text-white text-xs font-bold px-2.5 py-1 rounded-lg ${label.startsWith('작업 후') ? 'bg-brand/90' : 'bg-navy/85'}`}>
           {label}
         </span>
       </div>
@@ -58,6 +59,7 @@ function Block({
 
 export default function CaseDetailModal({ caseStudy: c, onClose }: Props) {
   const s = useSiteSettings();
+  const pairs = beforeAfterPairs(c);
 
   return (
     <ModalShell
@@ -119,7 +121,24 @@ export default function CaseDetailModal({ caseStudy: c, onClose }: Props) {
           </Block>
         )}
 
-        {c.beforeImageUrl && <Photo src={c.beforeImageUrl} alt={`${c.title} 작업 전`} label="작업 전" />}
+        {pairs.length > 0 && (
+          <div className="space-y-3">
+            {pairs.map((pair, i) => (
+              <div key={i} className="grid grid-cols-2 gap-2 sm:gap-3">
+                {pair.before ? (
+                  <Photo src={pair.before} alt={`${c.title} 작업 전 ${i + 1}`} label={pairs.length > 1 ? `작업 전 ${i + 1}` : '작업 전'} />
+                ) : (
+                  <div className="aspect-[4/3] rounded-2xl bg-slate-50 border border-dashed border-slate-200" />
+                )}
+                {pair.after ? (
+                  <Photo src={pair.after} alt={`${c.title} 작업 후 ${i + 1}`} label={pairs.length > 1 ? `작업 후 ${i + 1}` : '작업 후'} />
+                ) : (
+                  <div className="aspect-[4/3] rounded-2xl bg-slate-50 border border-dashed border-slate-200" />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         {c.workProcess && (
           <Block icon={Cog} title="작업 과정" tone="blue">
@@ -141,7 +160,6 @@ export default function CaseDetailModal({ caseStudy: c, onClose }: Props) {
           </Block>
         )}
 
-        {c.afterImageUrl && <Photo src={c.afterImageUrl} alt={`${c.title} 작업 후`} label="작업 후" />}
 
         {c.solution && (
           <Block icon={CheckCircle2} title="해결 결과" tone="emerald">

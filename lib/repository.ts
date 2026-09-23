@@ -246,6 +246,8 @@ function toCaseStudy(row: CaseRow): CaseStudy {
     equipment: row.equipment,
     beforeImageUrl: row.beforeImageUrl,
     afterImageUrl: row.afterImageUrl,
+    beforeImages: decodeList(row.beforeImages),
+    afterImages: decodeList(row.afterImages),
     processImages: decodeList(row.processImages),
     naverBlogLink: row.naverBlogLink,
     date: row.date,
@@ -266,6 +268,25 @@ function caseServiceId(input: Record<string, unknown>): number | null {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
+/**
+ * 작업 전/후 사진 목록. 배열이 오면 그대로, 없으면 단일 URL 을 한 장짜리 목록으로.
+ * 대표 사진(beforeImageUrl/afterImageUrl)은 항상 목록의 첫 장으로 맞춘다.
+ */
+function caseImageLists(input: Record<string, unknown>) {
+  const before = Array.isArray(input.beforeImages)
+    ? decodeList(encodeList(input.beforeImages))
+    : decodeList(str(input.beforeImageUrl));
+  const after = Array.isArray(input.afterImages)
+    ? decodeList(encodeList(input.afterImages))
+    : decodeList(str(input.afterImageUrl));
+  return {
+    beforeImages: JSON.stringify(before),
+    afterImages: JSON.stringify(after),
+    beforeImageUrl: before[0] ?? '',
+    afterImageUrl: after[0] ?? '',
+  };
+}
+
 export async function createCaseStudy(input: Record<string, unknown>): Promise<CaseStudy> {
   const row = await prisma.caseStudy.create({
     data: {
@@ -278,8 +299,7 @@ export async function createCaseStudy(input: Record<string, unknown>): Promise<C
       workProcess: str(input.workProcess).trim(),
       solution: str(input.solution).trim(),
       equipment: str(input.equipment).trim(),
-      beforeImageUrl: str(input.beforeImageUrl).trim(),
-      afterImageUrl: str(input.afterImageUrl).trim(),
+      ...caseImageLists(input),
       processImages: encodeList(input.processImages),
       naverBlogLink: str(input.naverBlogLink).trim(),
       date: str(input.date).trim() || todayISO(),
@@ -298,8 +318,6 @@ const CASE_TEXT_FIELDS = [
   'workProcess',
   'solution',
   'equipment',
-  'beforeImageUrl',
-  'afterImageUrl',
   'naverBlogLink',
   'date',
 ] as const;
@@ -315,6 +333,16 @@ export async function updateCaseStudy(
   }
   if (patch.isFeatured !== undefined) data.isFeatured = Boolean(patch.isFeatured);
   if (patch.processImages !== undefined) data.processImages = encodeList(patch.processImages);
+  if (patch.beforeImages !== undefined || patch.afterImages !== undefined || patch.beforeImageUrl !== undefined || patch.afterImageUrl !== undefined) {
+    const current = await prisma.caseStudy.findUnique({ where: { id } });
+    const merged = {
+      beforeImages: patch.beforeImages ?? (patch.beforeImageUrl !== undefined ? undefined : decodeList(current?.beforeImages)),
+      afterImages: patch.afterImages ?? (patch.afterImageUrl !== undefined ? undefined : decodeList(current?.afterImages)),
+      beforeImageUrl: patch.beforeImageUrl,
+      afterImageUrl: patch.afterImageUrl,
+    };
+    Object.assign(data, caseImageLists(merged as Record<string, unknown>));
+  }
   if (patch.serviceId !== undefined) data.serviceId = caseServiceId(patch);
 
   const exists = await prisma.caseStudy.findUnique({ where: { id } });
@@ -585,6 +613,8 @@ export async function mediaUsage(url: string): Promise<string[]> {
         OR: [
           { beforeImageUrl: url },
           { afterImageUrl: url },
+          { beforeImages: { contains: url } },
+          { afterImages: { contains: url } },
           { processImages: { contains: url } },
         ],
       },

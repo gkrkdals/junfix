@@ -20,5 +20,11 @@ export function featuredCase(cases: CaseStudy[]): CaseStudy | null {
 }
 
 export function hasPhotos(c: CaseStudy): boolean {
-  return Boolean(c.beforeImageUrl || c.afterImageUrl || c.processImages.length);
+  return Boolean(c.beforeImages.length || c.afterImages.length || c.processImages.length);
+}
+
+/** 작업 전/후 사진을 같은 순서끼리 묶는다. 한쪽이 짧으면 빈칸(null). */
+export function beforeAfterPairs(c: CaseStudy): { before: string | null; after: string | null }[] {
+  const n = Math.max(c.beforeImages.length, c.afterImages.length);
+  return Array.from({ length: n }, (_, i) => ({ before: c.beforeImages[i] ?? null, after: c.afterImages[i] ?? null }));
 }

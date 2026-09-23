@@ -59,8 +59,12 @@ export interface CaseStudy {
   /** 해결 결과 */
   solution: string;
   equipment: string;
+  /** 대표 작업 전/후 사진 (목록의 첫 장) */
   beforeImageUrl: string;
   afterImageUrl: string;
+  /** 작업 전/후 사진 목록. 같은 순서끼리 한 쌍 */
+  beforeImages: string[];
+  afterImages: string[];
   /** 작업 과정 사진 URL 목록 */
   processImages: string[];
   naverBlogLink: string;
