@@ -10,6 +10,9 @@ import type { SiteSettings } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
+// 네이버 서치어드바이저 사이트 소유 확인 코드 (준픽스.com)
+const DEFAULT_NAVER_SITE_VERIFICATION = '036f3680bb23be97c37a71fc0d66a5c966fd533f';
+
 async function loadSettings(): Promise<SiteSettings> {
   return getSiteSettings();
 }
@@ -23,9 +26,11 @@ export async function generateMetadata(): Promise<Metadata> {
     `상담 ${s.phoneNumber}`;
   const ogImage = s.heroImageUrl || '/images/junfix_main_poster.jpg';
 
+  // 검색엔진 소유 확인 코드. 관리자 > 기본 정보 값이 우선, 없으면 아래 기본값.
+  const naverVerification = s.naverSiteVerification || DEFAULT_NAVER_SITE_VERIFICATION;
   const verification: Metadata['verification'] = {};
   if (s.googleSiteVerification) verification.google = s.googleSiteVerification;
-  if (s.naverSiteVerification) verification.other = { 'naver-site-verification': s.naverSiteVerification };
+  if (naverVerification) verification.other = { 'naver-site-verification': naverVerification };
 
   return {
     metadataBase: new URL(siteUrl),
