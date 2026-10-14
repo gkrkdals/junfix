@@ -2,7 +2,8 @@
 //  - GA4 (G-XXXX)          : gaMeasurementId
 //  - Google Tag Manager    : gtmId (GTM-XXXX)
 //  - 네이버 애널리틱스       : naverAnalyticsId (wcs)
-//  - Google Ads 전환        : googleAdsSendTo (AW-XXXX/label) -> gtag config 에 AW 계정 추가
+//  - Google Ads 전환        : googleAdsSendTo / googleAdsInquirySendTo / googleAdsMessageSendTo
+//                            (AW-XXXX/label) -> gtag config 에 AW 계정 추가
 
 import Script from 'next/script';
 import type { SiteSettings } from '@/lib/types';
@@ -16,7 +17,10 @@ export default function Analytics({ settings }: { settings: SiteSettings }) {
   const ga = settings.gaMeasurementId.trim();
   const gtm = settings.gtmId.trim();
   const naver = settings.naverAnalyticsId.trim();
-  const ads = adsAccountFrom(settings.googleAdsSendTo);
+  const ads =
+    [settings.googleAdsSendTo, settings.googleAdsInquirySendTo, settings.googleAdsMessageSendTo]
+      .map(adsAccountFrom)
+      .find(Boolean) ?? '';
 
   const gtagIds = [ga, ads].filter(Boolean);
 

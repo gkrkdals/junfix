@@ -54,7 +54,10 @@ model SiteSetting {
   gaMeasurementId        String @default("") @map("ga_measurement_id") @db.VarChar(50)
   gtmId                  String @default("") @map("gtm_id") @db.VarChar(50)
   naverAnalyticsId       String @default("") @map("naver_analytics_id") @db.VarChar(50)
+  // 구글 애즈 전환 send_to (AW-XXXX/label). 전화 클릭 / 상담 신청 / 문자·카톡 을 각각 다른 전환으로 보낸다.
   googleAdsSendTo        String @default("") @map("google_ads_send_to") @db.VarChar(100)
+  googleAdsInquirySendTo String @default("") @map("google_ads_inquiry_send_to") @db.VarChar(100)
+  googleAdsMessageSendTo String @default("") @map("google_ads_message_send_to") @db.VarChar(100)
   naverSiteVerification  String @default("") @map("naver_site_verification") @db.VarChar(100)
   googleSiteVerification String @default("") @map("google_site_verification") @db.VarChar(100)
 

@@ -119,13 +119,20 @@ export default function SettingsTab({ settings, reload, toast }: Props) {
           <Field label="네이버 애널리틱스 ID (선택)" hint="네이버 애널리틱스 > 사이트 등록 후 발급되는 ID">
             {text('naverAnalyticsId')}
           </Field>
-          <Field label="구글 애즈 전환 (선택)" hint="구글 애즈 > 전환 > 태그 설정의 send_to 값. 예: AW-123456789/AbC-D_efGhIjKlMnOp">
+          <Field label="구글 애즈 전환 - 전화 클릭 (선택)" hint="구글 애즈 > 전환 > 태그 설정의 send_to 값. 예: AW-123456789/AbC-D_efGhIjKlMnOp">
             {text('googleAdsSendTo', 'AW-')}
+          </Field>
+          <Field label="구글 애즈 전환 - 상담 신청 (선택)" hint="상담 신청 폼 제출용 전환 액션의 send_to 값">
+            {text('googleAdsInquirySendTo', 'AW-')}
+          </Field>
+          <Field label="구글 애즈 전환 - 문자·카톡 (선택)" hint="문자·카카오톡 버튼 클릭용 전환 액션의 send_to 값">
+            {text('googleAdsMessageSendTo', 'AW-')}
           </Field>
         </div>
         <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 leading-relaxed">
           기록되는 이벤트: <b>call_click</b>(전화), <b>sms_click</b>(문자), <b>kakao_click</b>(카카오톡), <b>blog_click</b>(블로그), <b>inquiry_submit</b>(상담 신청).
           구글 애널리틱스에서 이 이벤트를 "전환"으로 표시하면 광고 성과를 확인할 수 있습니다.
+          구글 애즈 전환은 위 칸에 값이 있는 항목만 전송되며, 블로그 클릭은 문의가 아니므로 광고 전환에서 제외됩니다.
         </div>
       </Card>
     </form>

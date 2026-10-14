@@ -3,7 +3,7 @@
 // 전환 측정을 한 곳에서 처리한다.
 // 버튼/링크에 data-track="call_click" 같은 속성만 붙이면 클릭 시
 //   - GA4 이벤트 (call_click, sms_click, kakao_click, blog_click, inquiry_submit)
-//   - Google Ads 전환 (googleAdsSendTo 가 있을 때)
+//   - Google Ads 전환 (이벤트별 send_to 가 있을 때. 블로그 클릭은 문의가 아니므로 보내지 않는다)
 //   - 네이버 애널리틱스 이벤트 (wcs)
 // 가 전송된다. 폼 제출은 trackConversion('inquiry_submit') 를 직접 호출한다.
 
@@ -37,7 +37,7 @@ declare global {
     gtag?: (...args: unknown[]) => void;
     dataLayer?: unknown[];
     wcs?: { event: (name: string, value?: string) => void };
-    __junpiksAdsSendTo?: string;
+    __junpiksAdsSendTo?: Partial<Record<ConversionEvent, string>>;
   }
 }
 
@@ -47,7 +47,7 @@ export function trackConversion(event: ConversionEvent, label?: string) {
   try {
     if (window.gtag) {
       window.gtag('event', event, { event_category: 'lead', event_label: label ?? '' });
-      const sendTo = window.__junpiksAdsSendTo;
+      const sendTo = window.__junpiksAdsSendTo?.[event];
       if (sendTo) {
         window.gtag('event', 'conversion', { send_to: sendTo, event_label: event });
       }
@@ -66,9 +66,17 @@ export function trackConversion(event: ConversionEvent, label?: string) {
 export default function ConversionTracker() {
   const settings = useSiteSettings();
 
+  const { googleAdsSendTo, googleAdsInquirySendTo, googleAdsMessageSendTo } = settings;
   useEffect(() => {
-    window.__junpiksAdsSendTo = settings.googleAdsSendTo.trim() || undefined;
-  }, [settings.googleAdsSendTo]);
+    const call = googleAdsSendTo.trim();
+    const inquiry = googleAdsInquirySendTo.trim();
+    const message = googleAdsMessageSendTo.trim();
+    window.__junpiksAdsSendTo = {
+      ...(call && { call_click: call }),
+      ...(inquiry && { inquiry_submit: inquiry }),
+      ...(message && { sms_click: message, kakao_click: message }),
+    };
+  }, [googleAdsSendTo, googleAdsInquirySendTo, googleAdsMessageSendTo]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {

@@ -24,7 +24,12 @@ export interface SiteSettings {
   gaMeasurementId: string;
   gtmId: string;
   naverAnalyticsId: string;
+  /** 구글 애즈 전환 send_to: 전화 클릭 */
   googleAdsSendTo: string;
+  /** 구글 애즈 전환 send_to: 상담 신청 폼 제출 */
+  googleAdsInquirySendTo: string;
+  /** 구글 애즈 전환 send_to: 문자·카카오톡 클릭 */
+  googleAdsMessageSendTo: string;
   naverSiteVerification: string;
   googleSiteVerification: string;
 }

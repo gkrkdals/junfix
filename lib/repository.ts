@@ -89,6 +89,8 @@ const SETTINGS_FIELDS = [
   'gtmId',
   'naverAnalyticsId',
   'googleAdsSendTo',
+  'googleAdsInquirySendTo',
+  'googleAdsMessageSendTo',
   'naverSiteVerification',
   'googleSiteVerification',
 ] as const;
