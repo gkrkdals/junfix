@@ -91,6 +91,7 @@ const SETTINGS_FIELDS = [
   'googleAdsSendTo',
   'googleAdsInquirySendTo',
   'googleAdsMessageSendTo',
+  'naverAdsAccountId',
   'naverSiteVerification',
   'googleSiteVerification',
   'customScript',

@@ -2,6 +2,8 @@
 //  - GA4 (G-XXXX)          : gaMeasurementId
 //  - Google Tag Manager    : gtmId (GTM-XXXX)
 //  - 네이버 애널리틱스       : naverAnalyticsId (wcs)
+//  - 네이버 광고 전환        : naverAdsAccountId (s_XXXX, 네이버공통키) -> wcs.inflow 로 광고 유입 쿠키 저장
+//                            (전환 전송은 ConversionTracker 의 wcs.trans)
 //  - Google Ads 전환        : googleAdsSendTo / googleAdsInquirySendTo / googleAdsMessageSendTo
 //                            (AW-XXXX/label) -> gtag config 에 AW 계정 추가
 
@@ -17,6 +19,7 @@ export default function Analytics({ settings }: { settings: SiteSettings }) {
   const ga = settings.gaMeasurementId.trim();
   const gtm = settings.gtmId.trim();
   const naver = settings.naverAnalyticsId.trim();
+  const naverAds = settings.naverAdsAccountId.trim();
   const ads =
     [settings.googleAdsSendTo, settings.googleAdsInquirySendTo, settings.googleAdsMessageSendTo]
       .map(adsAccountFrom)
@@ -51,15 +54,30 @@ j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNo
         </Script>
       )}
 
-      {naver && (
-        <>
-          <Script id="naver-wcs-src" src="https://wcs.naver.net/wcslog.js" strategy="afterInteractive" />
-          <Script id="naver-wcs-init" strategy="afterInteractive">
-            {`if (window.wcs_add === undefined) window.wcs_add = {};
-window.wcs_add['wa'] = '${naver}';
-if (window.wcs) { window.wcs_do(); }`}
-          </Script>
-        </>
+      {(naver || naverAds) && (
+        // wcslog.js 로드가 끝난 뒤에 실행해야 하므로 스크립트를 직접 붙이고 onload 에서 초기화한다.
+        // 애널리틱스 ID 와 광고 공통키는 서로 다른 값이라 각각 PV 를 보낸다. 마지막 wa 는 광고 공통키로 남겨
+        // 이후 wcs.trans 전환이 광고 계정으로 가게 한다.
+        <Script id="naver-wcs-init" strategy="afterInteractive">
+          {`(function(){
+var analyticsId = ${JSON.stringify(naver)};
+var adsId = ${JSON.stringify(naverAds)};
+var s = document.createElement('script');
+s.src = 'https://wcs.naver.net/wcslog.js';
+s.async = true;
+s.onload = function(){
+  if (!window.wcs) return;
+  if (!window.wcs_add) window.wcs_add = {};
+  if (analyticsId) { window.wcs_add['wa'] = analyticsId; window.wcs_do(); }
+  if (adsId) {
+    window.wcs_add['wa'] = adsId;
+    window.wcs.inflow(location.hostname.replace(/^www\\./, ''));
+    window.wcs_do();
+  }
+};
+document.head.appendChild(s);
+})();`}
+        </Script>
       )}
     </>
   );

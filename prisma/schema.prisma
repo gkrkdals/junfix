@@ -58,6 +58,8 @@ model SiteSetting {
   googleAdsSendTo        String @default("") @map("google_ads_send_to") @db.VarChar(100)
   googleAdsInquirySendTo String @default("") @map("google_ads_inquiry_send_to") @db.VarChar(100)
   googleAdsMessageSendTo String @default("") @map("google_ads_message_send_to") @db.VarChar(100)
+  // 네이버 광고 전환 추적 네이버공통키 (s_XXXX). 전화 / 상담 신청 / 문자·카톡 을 전환 유형별로 나눠 보낸다.
+  naverAdsAccountId      String @default("") @map("naver_ads_account_id") @db.VarChar(50)
   naverSiteVerification  String @default("") @map("naver_site_verification") @db.VarChar(100)
   googleSiteVerification String @default("") @map("google_site_verification") @db.VarChar(100)
   // 외부 서비스(부정클릭방지 등)에서 받은 설치 스크립트. 공개 페이지 body 끝에 그대로 넣는다.

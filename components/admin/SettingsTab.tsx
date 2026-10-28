@@ -128,11 +128,15 @@ export default function SettingsTab({ settings, reload, toast }: Props) {
           <Field label="구글 애즈 전환 - 문자·카톡 (선택)" hint="문자·카카오톡 버튼 클릭용 전환 액션의 send_to 값">
             {text('googleAdsMessageSendTo', 'AW-')}
           </Field>
+          <Field label="네이버 광고 전환 - 네이버공통키 (선택)" hint="검색광고 > 도구 > 프리미엄 로그 분석 > 서비스 사용 현황의 네이버공통키. 예: s_1a2b3c4d5e6f">
+            {text('naverAdsAccountId', 's_')}
+          </Field>
         </div>
         <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 leading-relaxed">
           기록되는 이벤트: <b>call_click</b>(전화), <b>sms_click</b>(문자), <b>kakao_click</b>(카카오톡), <b>blog_click</b>(블로그), <b>inquiry_submit</b>(상담 신청).
           구글 애널리틱스에서 이 이벤트를 "전환"으로 표시하면 광고 성과를 확인할 수 있습니다.
           구글 애즈 전환은 위 칸에 값이 있는 항목만 전송되며, 블로그 클릭은 문의가 아니므로 광고 전환에서 제외됩니다.
+          네이버 광고 전환은 공통키를 넣으면 상담 신청은 <b>신청완료</b>, 전화는 <b>사용자정의 1</b>, 문자·카톡은 <b>사용자정의 2</b>로 보고서에 잡힙니다.
         </div>
       </Card>
 

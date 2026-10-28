@@ -30,6 +30,8 @@ export interface SiteSettings {
   googleAdsInquirySendTo: string;
   /** 구글 애즈 전환 send_to: 문자·카카오톡 클릭 */
   googleAdsMessageSendTo: string;
+  /** 네이버 광고(검색광고·GFA) 전환 추적 네이버공통키 (s_XXXX) */
+  naverAdsAccountId: string;
   naverSiteVerification: string;
   googleSiteVerification: string;
   /** 외부 서비스 설치 스크립트 (스마트로그 등). HTML 그대로. */
