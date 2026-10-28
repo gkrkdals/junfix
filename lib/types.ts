@@ -32,6 +32,8 @@ export interface SiteSettings {
   googleAdsMessageSendTo: string;
   naverSiteVerification: string;
   googleSiteVerification: string;
+  /** 외부 서비스 설치 스크립트 (스마트로그 등). HTML 그대로. */
+  customScript: string;
 }
 
 export interface ServiceItem {

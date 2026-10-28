@@ -93,6 +93,7 @@ const SETTINGS_FIELDS = [
   'googleAdsMessageSendTo',
   'naverSiteVerification',
   'googleSiteVerification',
+  'customScript',
 ] as const;
 
 function toSiteSettings(row: Record<string, unknown>): SiteSettings {

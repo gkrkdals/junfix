@@ -3,6 +3,7 @@ import './globals.css';
 import { SiteSettingsProvider } from '@/components/SiteSettingsProvider';
 import Analytics from '@/components/Analytics';
 import ConversionTracker from '@/components/ConversionTracker';
+import CustomScripts from '@/components/CustomScripts';
 import { getSiteSettings } from '@/lib/repository';
 import { resolveSiteUrl } from '@/lib/site-url';
 import { splitLines } from '@/lib/contact';
@@ -99,6 +100,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <SiteSettingsProvider settings={settings}>
           <Analytics settings={settings} />
           <ConversionTracker />
+          <CustomScripts />
           {children}
         </SiteSettingsProvider>
       </body>

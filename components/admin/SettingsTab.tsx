@@ -135,6 +135,22 @@ export default function SettingsTab({ settings, reload, toast }: Props) {
           구글 애즈 전환은 위 칸에 값이 있는 항목만 전송되며, 블로그 클릭은 문의가 아니므로 광고 전환에서 제외됩니다.
         </div>
       </Card>
+
+      <Card
+        title="외부 설치 스크립트 (부정클릭방지 등)"
+        description="스마트로그 같은 부정클릭방지·방문 분석 서비스에서 받은 설치 코드를 그대로 붙여 넣으세요. 홈페이지 모든 페이지에 적용되고, 관리자 화면에는 적용되지 않습니다."
+      >
+        <Field label="설치 코드" hint="<script> 태그까지 포함해 받은 그대로 붙여 넣기. 비우면 적용이 해제됩니다. 출처를 알 수 없는 코드는 넣지 마세요.">
+          <textarea
+            rows={6}
+            value={form.customScript}
+            onChange={(e) => set('customScript', e.target.value)}
+            className={`${inputClass} font-mono text-xs`}
+            placeholder={'<script src="https://..."></script>'}
+            spellCheck={false}
+          />
+        </Field>
+      </Card>
     </form>
   );
 }

@@ -60,6 +60,8 @@ model SiteSetting {
   googleAdsMessageSendTo String @default("") @map("google_ads_message_send_to") @db.VarChar(100)
   naverSiteVerification  String @default("") @map("naver_site_verification") @db.VarChar(100)
   googleSiteVerification String @default("") @map("google_site_verification") @db.VarChar(100)
+  // 외부 서비스(부정클릭방지 등)에서 받은 설치 스크립트. 공개 페이지 body 끝에 그대로 넣는다.
+  customScript           String @default("") @map("custom_script") @db.Text
 
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
