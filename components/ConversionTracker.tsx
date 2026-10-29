@@ -5,11 +5,12 @@
 //   - GA4 이벤트 (call_click, sms_click, kakao_click, blog_click, inquiry_submit)
 //   - Google Ads 전환 (이벤트별 send_to 가 있을 때. 블로그 클릭은 문의가 아니므로 보내지 않는다)
 //   - 네이버 애널리틱스 이벤트 (wcs)
-//   - 네이버 광고 전환 (naverAdsAccountId 가 있을 때, wcs.trans. 블로그 클릭은 마찬가지로 제외)
+//   - 네이버 광고 전환 (naverAdsAccountId, 비면 lib/naver 기본값, wcs.trans. 블로그 클릭은 마찬가지로 제외)
 // 가 전송된다. 폼 제출은 trackConversion('inquiry_submit') 를 직접 호출한다.
 
 import { useEffect } from 'react';
 import { useSiteSettings } from '@/components/SiteSettingsProvider';
+import { resolveNaverAdsAccountId } from '@/lib/naver';
 
 export type ConversionEvent =
   | 'call_click'
@@ -112,7 +113,7 @@ export default function ConversionTracker() {
 
   const { naverAdsAccountId } = settings;
   useEffect(() => {
-    window.__junpiksNaverAdsAccount = naverAdsAccountId.trim() || undefined;
+    window.__junpiksNaverAdsAccount = resolveNaverAdsAccountId(naverAdsAccountId);
   }, [naverAdsAccountId]);
 
   useEffect(() => {

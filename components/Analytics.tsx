@@ -2,13 +2,14 @@
 //  - GA4 (G-XXXX)          : gaMeasurementId
 //  - Google Tag Manager    : gtmId (GTM-XXXX)
 //  - 네이버 애널리틱스       : naverAnalyticsId (wcs)
-//  - 네이버 광고 전환        : naverAdsAccountId (s_XXXX, 네이버공통키) -> wcs.inflow 로 광고 유입 쿠키 저장
+//  - 네이버 광고 전환        : naverAdsAccountId (s_XXXX, 네이버공통키. 비면 lib/naver 기본값) -> wcs.inflow 로 광고 유입 쿠키 저장
 //                            (전환 전송은 ConversionTracker 의 wcs.trans)
 //  - Google Ads 전환        : googleAdsSendTo / googleAdsInquirySendTo / googleAdsMessageSendTo
 //                            (AW-XXXX/label) -> gtag config 에 AW 계정 추가
 
 import Script from 'next/script';
 import type { SiteSettings } from '@/lib/types';
+import { resolveNaverAdsAccountId } from '@/lib/naver';
 
 function adsAccountFrom(sendTo: string): string {
   const m = sendTo.trim().match(/^(AW-[0-9A-Za-z]+)/);
@@ -19,7 +20,7 @@ export default function Analytics({ settings }: { settings: SiteSettings }) {
   const ga = settings.gaMeasurementId.trim();
   const gtm = settings.gtmId.trim();
   const naver = settings.naverAnalyticsId.trim();
-  const naverAds = settings.naverAdsAccountId.trim();
+  const naverAds = resolveNaverAdsAccountId(settings.naverAdsAccountId);
   const ads =
     [settings.googleAdsSendTo, settings.googleAdsInquirySendTo, settings.googleAdsMessageSendTo]
       .map(adsAccountFrom)
